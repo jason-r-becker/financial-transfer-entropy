@@ -67,7 +67,7 @@ The main developer(s):
 - Jason R Becker (`jrbecker <https://github.com/jason-r-becker>`__)
 - Jack St. Clair (`JackStC <https://github.com/JackStC>`__)
 - John Hurford (`fruhj <https://github.com/fruhj>`__)
-- Jerry Fan
+- Jerry Fan (`jerryfan1 <https://github.com/jerryfan1>`__)
 
 .. |GitHub-Status| image:: https://img.shields.io/github/tag/jason-r-becker/financial-transfer-entropy.svg?maxAge=86400
    :target: https://github.com/jason-r-becker/financial-transfer-entropy/releases

@@ -1,5 +1,5 @@
-dfspy
-=====
+financial-transfer-entropy
+==========================
 
 |python-Versions| |LICENSE|
 
@@ -8,7 +8,7 @@ and clusters in financial time series with transfer entropy.
  Adaptive directional networks (i.e., asset graphs) are constructed using
  transfer entropy to threshold edges between each (asset) node. Advanced
  visualizations of both the formulated networks and standard unconditional
- correlations are
+ correlations are included.
 
 
 .. contents:: Table of contents

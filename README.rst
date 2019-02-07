@@ -36,7 +36,7 @@ Using Anaconda, from terminal:
 
 .. code:: sh
 
-   cd fte/
+   cd financial-transfer-entropy/
    conda create -n fte python=3.7
    source activate fte
    pip install -U pip

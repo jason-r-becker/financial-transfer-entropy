@@ -157,10 +157,10 @@ class TransferEntropy:
         opt = minimize(
             self._stress_function,
             x0=np.random.rand(2*self._n),
-            method='SLSQP',
+            method=solver,
             tol=1e-3,
             options={'disp': False, 'maxiter': 10000},
-            callback=printx if verbose else exit_opt
+            callback=printx if verbose else exit_opt,
             )
         if opt.status != 0:
             raise RuntimeError(opt.message)

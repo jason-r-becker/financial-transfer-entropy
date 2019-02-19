@@ -13,19 +13,19 @@ plt.style.use('fivethirtyeight')
 
 
 
-%matplotlib qt
+# %matplotlib qt
 # %%
 
 class TransferEntropy:
     """
     Class to compute asset graphs using transfer entropy.
-    
+
     Parameters
     ----------
     data: pd.DataFrame, default=None
         DataFrame of asset log returns with datetime index and no missing data.
         If None, price datafiles are loaded from data directory.
-    
+
     Attributes
     ----------
     data: pd.DataFrame
@@ -34,7 +34,7 @@ class TransferEntropy:
         List of asset names.
     corr: pd.DataFrame
         Spearman correlation between assets.
-    
+
     Methods
     -------
     set_timeperiod(start, end): Set starting and ending dates for analysis.
@@ -45,11 +45,11 @@ class TransferEntropy:
     plot_corr(method): Plot correlations between assets.
     plot_te(te): Plot transfer entropy heatmap.
     """
-    
+
     def __init__(self, data=None):
         self._prices = data if data is not None else self._load_data()
         self.set_timeperiod('1/1/2014', '1/1/2019')
-        
+
     def _read_file(self, fid):
         """Read data file as DataFrame."""
         df = pd.read_csv(
@@ -59,7 +59,7 @@ class TransferEntropy:
             infer_datetime_format=True,
             )
         return df.dropna(axis=1)
-        
+
     def _load_data(self):
         """Load data from data directory into single into DataFrame."""
         fids = glob('../data/*.csv')
@@ -70,42 +70,42 @@ class TransferEntropy:
     def set_timeperiod(self, start=None, end=None):
         """
         Updata self.data with start and end dates for analysis.
-        
+
         Parameters
         ----------
         start: str or datetime object, default=None
             Starting date for analysis.
         end: str or datetime object, default=None
             Ending date for analysis.
-        
+
         """
         data = self._prices.copy()
-        
+
         # Ignore warnings for missing data.
         warnings.filterwarnings('ignore')
-        
+
         # Subset data by time period.
         if start is not None:
             data = data[data.index >= pd.to_datetime(start)].copy()
         if end is not None:
             data = data[data.index <= pd.to_datetime(end)].copy()
-        
+
         # Drop Sundays.
         keep_ix = [ix.weekday() != 6 for ix in list(data.index)]
         data = data[keep_ix].copy()
         self.data = np.log(data[1:] / data[:-1].values)  # log returns
         self.data.dropna(axis=1, inplace=True)  # Drop assets with missing data.
-        
+
         # Map asset names to DataFrame.
         with open('../data/asset_mapping.json', 'r') as fid:
             asset_map = json.load(fid)
         self.assets = [asset_map.get(a, a) for a in list(self.data)]
         self._n = len(self.assets)
-        
+
         # Rename DataFrame with asset names and init data matrix.
         self.data.columns = self.assets
         self._data_mat = self.data.values
-    
+
     def _euclidean_distance(self, x, i, j):
         """Euclidean distance between points in x-coordinates."""
         m = x.shape[1]
@@ -116,22 +116,22 @@ class TransferEntropy:
         # Map 1-D input coordinates to 2-D
         x = np.reshape(x, (-1, 2))
         n = x.shape[0]
-        
+
         num, denom = 0, 0
         for i in range(n):
             for j in range(i, n):
                 delta = int(i == j)
                 euc_d = self._euclidean_distance(x, i, j)
-    
+
                 # Build numerator and denominator sums.
                 num += (delta - euc_d)**2
                 denom += self._distance[i, j]**2
         return (num / denom)**0.5
-        
+
     def build_asset_graph(self, solver, distance=None, verbose=False):
         """
         Build asset graph of transfer entropy with specified threshold.
-        
+
         Parameters
         ----------
         solver: str, default='SLSQP'
@@ -139,21 +139,21 @@ class TransferEntropy:
         """
         # Find correlations and distance metric.
         self.corr =  self.data.corr('spearman')
-        
+
         self._distance = distance if distance is not None \
                          else np.sqrt(2 * (1-self.corr.values))
-        
+
 
 
         # Solve 2-D coordinate positions.
         def exit_opt(Xi):
             if np.sum(np.isnan(Xi)) > 1:
                 raise RuntimeError('Minimize convergence failed.')
-                
+
         def printx(Xi):
             print(Xi)
             exit_opt(Xi)
-            
+
         opt = minimize(
             self._stress_function,
             x0=np.random.rand(2*self._n),
@@ -164,16 +164,16 @@ class TransferEntropy:
             )
         if opt.status != 0:
             raise RuntimeError(opt.message)
-        
+
         self._coordinates = np.reshape(opt.x, (-1, 2))
 
 
-                
+
     def plot_asset_graph(self, threshold, all_thresholds=None,
                          ax=None, figsize=(6, 6), fontsize=6):
         """
         Plot asset graph network.
-        
+
         Parameters
         ----------
         threshold: float
@@ -203,19 +203,19 @@ class TransferEntropy:
                 nodes.extend(edges_i)
         nodes = list(set(nodes))
         edges = {key: val for key, val in edges.items() if len(val) > 0}
-        
+
         # Store values of edges.
         edge_vals = {}
         for node0, node0_edges in edges.items():
             for node1 in node0_edges:
                 edge_vals[(node0, node1)] = self._distance[node0, node1]
-                
+
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
-            
+
         x = self._coordinates[:, 0]
         y = self._coordinates[:, 1]
-        
+
         # Get sequential colors for edges based on distance.
         cmap = sns.color_palette('magma', 101).as_hex()
         emin = min(self._distance[self._distance > 0])
@@ -229,19 +229,19 @@ class TransferEntropy:
             for node1 in node0_edges:
                 ix = [node0, node1]
                 ax.plot(x[ix], y[ix], c=edge_color[tuple(ix)], lw=2, alpha=0.7)
-        
+
         # Plot asset names over edges.
         box = {'fill': 'white', 'facecolor': 'white', 'edgecolor': 'k'}
         for node in nodes:
             ax.text(x[node], y[node], self.assets[node], fontsize=fontsize,
                     horizontalalignment='center', verticalalignment='center',
                     bbox=box)
-    
+
     def plot_corr(self, method='spearman', ax=None, figsize=(6, 6),
                   fontsize=8):
         """
         Plot correlation of assets.
-        
+
         Parameters
         ----------
         method: {'spearman', 'pearson', 'kendall'}, default='spearman'
@@ -258,7 +258,7 @@ class TransferEntropy:
         """
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
-        
+
         self._corr = self.data.corr(method)
         sns.heatmap(self._corr, ax=ax, vmin=-1, vmax=1,
                     xticklabels=True, yticklabels=True, cmap='coolwarm')
@@ -273,7 +273,7 @@ class TransferEntropy:
         """
         Compute transfer entropy for asset x on lagged x and lagged y
         log returns.
-        
+
         Parameters
         ----------
         X: int
@@ -284,7 +284,7 @@ class TransferEntropy:
             Number of bins to place log returns in.
         shuffle: bool
             If True, shuffle all time series for randomized transfer entropy.
-        
+
         Returns
         -------
         te: float
@@ -302,22 +302,22 @@ class TransferEntropy:
             np.linspace(0, np.max(data_matrix), int(bins/2)+1)[1:],
             ])
         bin_vals = np.reshape(pd.cut(
-            data_matrix, bins=bin_edges, labels=False), (-1, 3))
-    
+            data_matrix, bins=bin_edges, labels=False), (3, -1)).T
+
         if shuffle:
             for j in range(3):
                 np.random.shuffle(bin_vals[:, j])
-                
+
         # Find frequency of occurce for each set of joint vectors.
         p_ilag = Counter(bin_vals[:, 1])
         p_i_ilag = Counter(list(zip(bin_vals[:, 0], bin_vals[:, 1])))
         p_ilag_jlag = Counter(list(zip(bin_vals[:, 1], bin_vals[:, 2])))
         p_i_ilag_jlag = Counter(
             list(zip(bin_vals[:, 0], bin_vals[:, 1], bin_vals[:, 2])))
-        
+
         # Catch warnings as errors for np.log2(0).
         warnings.filterwarnings('error')
-        
+
         # Compute transfer entropy.
         te = 0
         for i in range(bins):
@@ -333,17 +333,17 @@ class TransferEntropy:
                     except (ZeroDivisionError, RuntimeWarning):
                         te_i = 0
                     te += te_i
-        
+
         # Reset warnings to default.
         warnings.filterwarnings('ignore')
         return te
-        
-    def compute_transfer_entorpy(self, bins=6, shuffle=False, save=True):
+
+    def compute_transfer_entropy(self, bins=6, shuffle=False, save=True):
         """
         Compute transfer entropy matrix. Returned matrix is directional
         such that asset on X-axis inluences next day transfer entropy of
         asset on the Y-axis.
-        
+
         Parameters
         ----------
         bins: int, default=6
@@ -352,22 +352,22 @@ class TransferEntropy:
             If True, shuffle all time series for randomized transfer entropy.
         save: bool, default=True
             If True save result
-            
+
         Returns
         -------
         te: [n x n] nd.array
             Transfer entropy matrix.
         """
-        
+
         n = self._n
         te = np.zeros([n, n])
-        
+
         data = self._data_mat.copy()
         for i in range(n):
             for j in range(n):
                 te[i, j] = self._transfer_entropy_function(
                     data, i, j, bins, shuffle=shuffle)
-        
+
         if save:
             self._te = te.copy()  # store te matrix.
             self._te_min = np.min(te)
@@ -375,13 +375,13 @@ class TransferEntropy:
             self.te = pd.DataFrame(te, columns=self.assets, index=self.assets)
         else:
             return te
-        
+
     def compute_effective_transfer_entropy(self, bins=6, sims=25):
         """
         Compute effective transfer entropy matrix. Returned matrix is
         directional such that asset on X-axis inluences next day transfer
         entropy of asset on the Y-axis.
-        
+
         Parameters
         ----------
         bins: int, default=6
@@ -389,38 +389,38 @@ class TransferEntropy:
         sims: int, default=25
             Number of simulations to use when estimating randomized
             transfer entropy.
-        
+
         Returns
         -------
         ete: [n x n] nd.array
             Effective transfer entropy matrix.
         """
-        
+
         # Compute and store transfer entropy.
-        self.compute_transfer_entorpy(bins)
-        
+        self.compute_transfer_entropy(bins)
+
         # Compute and store randomized transfer entropy.
         rte_tensor = np.zeros([self._n, self._n, sims])
         for i in range(sims):
-            rte_tensor[:, :, i] = self.compute_transfer_entorpy(
+            rte_tensor[:, :, i] = self.compute_transfer_entropy(
                 bins, shuffle=True, save=False)
         rte = np.mean(rte_tensor, axis=2)
         self.rte = pd.DataFrame(rte, columns=self.assets, index=self.assets)
-        
+
         # Compute effective transfer entropy.
         self.ete = self.te - self.rte
-        
+
         # Store max and min values.
         self._te_max = np.max(self.te.values)
         self._te_min = np.min(self.ete.values)
-        
-        
-        
+
+
+
     def plot_te(self, te='te', labels=True, cbar=True, ax=None,
                 figsize=(6, 6), fontsize=6):
         """
         Plot correlation of assets.
-        
+
         Parameters
         ----------
         te: {'te', 'rte', 'ete'}, default='te'
@@ -441,8 +441,8 @@ class TransferEntropy:
         """
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
-        
-        
+
+
         heatmap = eval(f'self.{te}')
         sns.heatmap(heatmap, ax=ax, vmin=self._te_min, vmax=self._te_max,
                     cmap='viridis', xticklabels=labels, yticklabels=labels,
@@ -450,8 +450,8 @@ class TransferEntropy:
         if labels:
             plt.setp(ax.get_xticklabels(), fontsize=fontsize)
             plt.setp(ax.get_yticklabels(), fontsize=fontsize)
-    
-    
+
+
 self = TransferEntropy()
 
 # %%
@@ -474,7 +474,7 @@ plt.show()
 import networkx as nx
 fig = plt.figure(figsize=[8, 8])
 corr = self.data.corr()
- 
+
 # Transform it in a links data frame.
 links = corr.stack().reset_index()
 links.columns = ['var1', 'var2','value']
@@ -483,10 +483,10 @@ links
 # Keep only correlation over a threshold and remove self correlation.
 links_filtered = links.loc[
     (links['value'] > 0.6) & (links['var1'] != links['var2'])]
- 
+
 # Build graph.
 G = nx.from_pandas_edgelist(links_filtered, 'var1', 'var2')
- 
+
 # Plot the network.
 nx.draw(G, with_labels=True, node_color='lightblue', node_size=400,
         edge_color='k',
@@ -519,7 +519,7 @@ plt.show()
 self.plot_asset_graph(0.6)
 # %%
 # Plot Transfer Entropy.
-self.compute_transfer_entorpy(bins=6)
+self.compute_transfer_entropy(bins=6)
 self.plot_te()
 plt.show()
 

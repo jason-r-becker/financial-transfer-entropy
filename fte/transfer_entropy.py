@@ -13,7 +13,7 @@ plt.style.use('fivethirtyeight')
 
 
 
-# %matplotlib qt
+%matplotlib qt
 # %%
 
 class TransferEntropy:
@@ -105,7 +105,7 @@ class TransferEntropy:
         # Rename DataFrame with asset names and init data matrix.
         self.data.columns = self.assets
         self._data_mat = self.data.values
-        
+    
     def _euclidean_distance(self, x, i, j):
         """Euclidean distance between points in x-coordinates."""
         m = x.shape[1]
@@ -268,7 +268,7 @@ class TransferEntropy:
         ticks = np.linspace(-1, 1, 5)
         cbar.set_ticks(ticks)
         cbar.set_ticklabels(ticks)
-    
+
     def _transfer_entropy_function(self, data, X, Y, bins, shuffle):
         """
         Compute transfer entropy for asset x on lagged x and lagged y
@@ -296,9 +296,14 @@ class TransferEntropy:
         n = len(x)
 
         # Find respective historgram bin for each time series value.
-        bin_vals = np.reshape(pd.cut(np.concatenate(
-            [x, x_lag, y_lag]), bins=bins, labels=False), (-1, 3))
-        
+        data_matrix = np.concatenate([x, x_lag, y_lag])
+        bin_edges = np.concatenate([
+            np.linspace(np.min(data_matrix), 0, int(bins/2)+1),
+            np.linspace(0, np.max(data_matrix), int(bins/2)+1)[1:],
+            ])
+        bin_vals = np.reshape(pd.cut(
+            data_matrix, bins=bin_edges, labels=False), (-1, 3))
+    
         if shuffle:
             for j in range(3):
                 np.random.shuffle(bin_vals[:, j])
@@ -464,6 +469,30 @@ self.build_asset_graph('SLSQP')
 self.plot_corr('spearman')
 plt.show()
 
+
+# %%
+import networkx as nx
+fig = plt.figure(figsize=[8, 8])
+corr = self.data.corr()
+ 
+# Transform it in a links data frame.
+links = corr.stack().reset_index()
+links.columns = ['var1', 'var2','value']
+links
+
+# Keep only correlation over a threshold and remove self correlation.
+links_filtered = links.loc[
+    (links['value'] > 0.6) & (links['var1'] != links['var2'])]
+ 
+# Build graph.
+G = nx.from_pandas_edgelist(links_filtered, 'var1', 'var2')
+ 
+# Plot the network.
+nx.draw(G, with_labels=True, node_color='lightblue', node_size=400,
+        edge_color='k',
+        linewidths=1, font_size=4)
+plt.show()
+
 # %%
 # Plot asset graphs for multiple thresholds.
 thresholds = [0.5, 0.6, 0.7]
@@ -485,6 +514,9 @@ for t, ax in zip(thresholds, axes.flat):
 plt.tight_layout()
 plt.show()
 
+
+# %%
+self.plot_asset_graph(0.6)
 # %%
 # Plot Transfer Entropy.
 self.compute_transfer_entorpy(bins=6)
@@ -507,3 +539,6 @@ plt.show()
 
 
 # %%
+fig, axes = plt.subplots(3, 4, figsize=[6,6])
+fig = plt.figure()
+plt.tight_layout()

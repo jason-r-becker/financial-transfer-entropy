@@ -1,0 +1,193 @@
+﻿Ticker,Long Name,Start Date,End Date
+SPY ,SPDR S&P 500 ETF Trust,1/4/10,2/15/19
+IVV ,iShares Core S&P 500 ETF,1/4/10,2/15/19
+VV ,Vanguard Large-Cap ETF,1/4/10,2/15/19
+IWB ,iShares Russell 1000 ETF,1/4/10,2/15/19
+OEF ,iShares S&P 100 ETF,1/4/10,2/15/19
+SUSA ,iShares MSCI USA ESG Select ET,1/4/10,2/15/19
+DSI ,iShares MSCI KLD 400 Social ET,1/4/10,2/15/19
+SHE ,SPDR SSGA Gender Diversity Ind,1/4/10,2/15/19
+CATH ,Global X S&P 500 Catholic Valu,1/4/10,2/15/19
+USMV ,iShares Edge MSCI Min Vol USA,1/4/10,2/15/19
+VIG ,Vanguard Dividend Appreciation,1/4/10,2/15/19
+RSP ,Invesco S&P 500 Equal Weight E,1/4/10,2/15/19
+PBP ,Invesco S&P 500 BuyWrite ETF,1/4/10,2/15/19
+DIA ,SPDR Dow Jones Industrial Aver,1/4/10,2/15/19
+IWF ,iShares Russell 1000 Growth ET,1/4/10,2/15/19
+VUG ,Vanguard Growth ETF,1/4/10,2/15/19
+IUSG ,iShares Core S&P U.S. Growth E,1/4/10,2/15/19
+IVW ,iShares S&P 500 Growth ETF,1/4/10,2/15/19
+QQQ ,Invesco QQQ Trust Series 1,1/4/10,2/15/19
+DGRW ,WisdomTree U.S. Quality Divide,1/4/10,2/15/19
+QUAL ,iShares Edge MSCI USA Quality,1/4/10,2/15/19
+IWD ,iShares Russell 1000 Value ETF,1/4/10,2/15/19
+VTV ,Vanguard Value ETF,1/4/10,2/15/19
+IUSV ,iShares Core S&P U.S. Value ET,1/4/10,2/15/19
+IVE ,iShares S&P 500 Value ETF,1/4/10,2/15/19
+HDV ,iShares Core High Dividend ETF,1/4/10,2/15/19
+PRF ,Invesco FTSE RAFI US 1000 ETF,1/4/10,2/15/19
+SDY ,SPDR S&P Dividend ETF,1/4/10,2/15/19
+DVY ,iShares Select Dividend ETF,1/4/10,2/15/19
+IWR ,iShares Russell Mid-Cap ETF,1/4/10,2/15/19
+VO ,Vanguard Mid-Cap ETF,1/4/10,2/15/19
+VXF ,Vanguard Extended Market ETF,1/4/10,2/15/19
+IJH ,iShares Core S&P Mid-Cap ETF,1/4/10,2/15/19
+MDY ,SPDR S&P MidCap 400 ETF Trust,1/4/10,2/15/19
+IWP ,iShares Russell Mid-Cap Growth,1/4/10,2/15/19
+VOT ,Vanguard Mid-Cap Growth ETF,1/4/10,2/15/19
+IJK ,iShares S&P Mid-Cap 400 Growth,1/4/10,2/15/19
+IWS ,iShares Russell Mid-Cap Value,1/4/10,2/15/19
+VOE ,Vanguard Mid-Cap Value ETF,1/4/10,2/15/19
+IJJ ,iShares S&P Mid-Cap 400 Value,1/4/10,2/15/19
+DON ,WisdomTree US MidCap Dividend,1/4/10,2/15/19
+PEY ,Invesco High Yield Equity Divi,1/4/10,2/15/19
+CWB ,SPDR Bloomberg Barclays Conver,1/4/10,2/15/19
+IWM ,iShares Russell 2000 ETF,1/4/10,2/15/19
+VB ,Vanguard Small-Cap ETF,1/4/10,2/15/19
+IJR ,iShares Core S&P Small-Cap ETF,1/4/10,2/15/19
+IWC ,iShares Micro-Cap ETF,1/4/10,2/15/19
+PRFZ ,Invesco FTSE RAFI US 1500 Smal,1/4/10,2/15/19
+IWO ,iShares Russell 2000 Growth ET,1/4/10,2/15/19
+VBK ,Vanguard Small-Cap Growth ETF,1/4/10,2/15/19
+IJT ,iShares S&P Small-Cap 600 Grow,1/4/10,2/15/19
+IWN ,iShares Russell 2000 Value ETF,1/4/10,2/15/19
+VBR ,Vanguard Small-Cap Value ETF,1/4/10,2/15/19
+IJS ,iShares S&P Small-Cap 600 Valu,1/4/10,2/15/19
+VTI ,Vanguard Total Stock Market ET,1/4/10,2/15/19
+IWV ,iShares Russell 3000 ETF,1/4/10,2/15/19
+XLY ,Consumer Discretionary Select,1/4/10,2/15/19
+XLP ,Consumer Staples Select Sector,1/4/10,2/15/19
+XLF ,Financial Select Sector SPDR F,1/4/10,2/15/19
+XLV ,Health Care Select Sector SPDR,1/4/10,2/15/19
+XLU ,Utilities Select Sector SPDR F,1/4/10,2/15/19
+XLE ,Energy Select Sector SPDR Fund,1/4/10,2/15/19
+XLK ,Technology Select Sector SPDR,1/4/10,2/15/19
+XLC ,Communication Services Select,1/4/10,2/15/19
+XLRE ,Real Estate Select Sector SPDR,1/4/10,2/15/19
+IGM ,iShares Expanded Tech Sector E,1/4/10,2/15/19
+IYW ,iShares US Technology ETF,1/4/10,2/15/19
+ICF ,iShares Cohen & Steers REIT ET,1/4/10,2/15/19
+RWR ,SPDR Dow Jones REIT ETF,1/4/10,2/15/19
+VNQ ,Vanguard Real Estate ETF,1/4/10,2/15/19
+IYR ,iShares U.S. Real Estate ETF,1/4/10,2/15/19
+IYZ ,iShares US Telecommunications,1/4/10,2/15/19
+XLI ,Industrial Select Sector SPDR,1/4/10,2/15/19
+XLB ,Materials Select Sector SPDR F,1/4/10,2/15/19
+IGE ,iShares North American Natural,1/4/10,2/15/19
+VIS ,Vanguard Industrials ETF,1/4/10,2/15/19
+VAW ,Vanguard Materials ETF,1/4/10,2/15/19
+IBB ,iShares Nasdaq Biotechnology E,1/4/10,2/15/19
+XBI ,SPDR S&P Biotech ETF,1/4/10,2/15/19
+XPH ,SPDR S&P Pharmaceuticals ETF,1/4/10,2/15/19
+IHI ,iShares U.S. Medical Devices E,1/4/10,2/15/19
+ITB ,iShares U.S. Home Construction,1/4/10,2/15/19
+XHB ,SPDR S&P Homebuilders ETF,1/4/10,2/15/19
+XRT ,SPDR S&P Retail ETF,1/4/10,2/15/19
+XES ,SPDR S&P Oil & Gas Equipment &,1/4/10,2/15/19
+XOP ,SPDR S&P Oil & Gas Exploration,1/4/10,2/15/19
+OIH ,VanEck Vectors Oil Services ET,1/4/10,2/15/19
+KBE ,SPDR S&P Bank ETF,1/4/10,2/15/19
+KIE ,SPDR S&P Insurance ETF,1/4/10,2/15/19
+KRE ,SPDR S&P Regional Banking ETF,1/4/10,2/15/19
+SOXX ,iShares PHLX Semiconductor ETF,1/4/10,2/15/19
+IGV ,iShares Expanded Tech-Software,1/4/10,2/15/19
+FDN ,First Trust Dow Jones Internet,1/4/10,2/15/19
+SKYY ,First Trust Cloud Computing ET,1/4/10,2/15/19
+XME ,SPDR S&P Metals & Mining ETF,1/4/10,2/15/19
+ITA ,iShares US Aerospace & Defense,1/4/10,2/15/19
+IHF ,iShares U.S. Healthcare Provid,1/4/10,2/15/19
+PZD ,Invesco Cleantech ETF,1/4/10,2/15/19
+PBW ,Invesco WilderHill Clean Energ,1/4/10,2/15/19
+TAN ,Invesco Solar ETF,1/4/10,2/15/19
+MOO ,VanEck Vectors Agribusiness ET,1/4/10,2/15/19
+PHO ,Invesco Water Resources ETF,1/4/10,2/15/19
+PIO ,Invesco Global Water ETF,1/4/10,2/15/19
+GDX ,VanEck Vectors Gold Miners ETF,1/4/10,2/15/19
+IYT ,iShares Transportation Average,1/4/10,2/15/19
+CUT ,Invesco MSCI Global Timber ETF,1/4/10,2/15/19
+WOOD ,iShares Global Timber & Forest,1/4/10,2/15/19
+EFA ,iShares MSCI EAFE ETF,1/4/10,2/15/19
+ESGD ,iShares Trust iShares ESG MSCI,1/4/10,2/15/19
+VEA ,Vanguard FTSE Developed Market,1/4/10,2/15/19
+IEFA ,iShares Core MSCI EAFE ETF,1/4/10,2/15/19
+EFAV ,iShares Edge MSCI Min Vol EAFE,1/4/10,2/15/19
+DBEF ,Xtrackers MSCI EAFE Hedged Equ,1/4/10,2/15/19
+IDV ,iShares International Select D,1/4/10,2/15/19
+DTH ,WisdomTree Trust - WisdomTree,1/4/10,2/15/19
+EFG ,iShares MSCI EAFE Growth ETF,1/4/10,2/15/19
+EFV ,iShares MSCI EAFE Value ETF,1/4/10,2/15/19
+GWX ,SPDR S&P International Small C,1/4/10,2/15/19
+SCZ ,iShares MSCI EAFE Small-Cap ET,1/4/10,2/15/19
+DLS ,WisdomTree International Small,1/4/10,2/15/19
+CWI ,SPDR MSCI ACWI ex-US ETF,1/4/10,2/15/19
+ACWV ,iShares Edge MSCI Min Vol Glob,1/4/10,2/15/19
+CRBN ,iShares MSCI ACWI Low Carbon T,1/4/10,2/15/19
+VT ,Vanguard Total World Stock ETF,1/4/10,2/15/19
+VEU ,Vanguard FTSE All-World ex-US,1/4/10,2/15/19
+VSS ,Vanguard FTSE All World ex-US,1/4/10,2/15/19
+EEM ,iShares MSCI Emerging Markets,1/4/10,2/15/19
+ESGE ,iShares Inc iShares ESG MSCI E,1/4/10,2/15/19
+VWO ,Vanguard FTSE Emerging Markets,1/4/10,2/15/19
+IEMG ,iShares Core MSCI Emerging Mar,1/4/10,2/15/19
+DEM ,WisdomTree Emerging Markets Hi,1/4/10,2/15/19
+EEMV ,iShares Edge MSCI Min Vol Emer,1/4/10,2/15/19
+EWX ,SPDR S&P Emerging Markets Smal,1/4/10,2/15/19
+DGS ,WisdomTree Emerging Markets Sm,1/4/10,2/15/19
+ECON ,Columbia Emerging Markets Cons,1/4/10,2/15/19
+EMIF ,iShares Emerging Markets Infra,1/4/10,2/15/19
+KXI ,iShares Global Consumer Staple,1/4/10,2/15/19
+RXI ,iShares Global Consumer Discre,1/4/10,2/15/19
+IXC ,iShares Global Energy ETF,1/4/10,2/15/19
+IXG ,iShares Global Financials ETF,1/4/10,2/15/19
+IXJ ,iShares Global Healthcare ETF,1/4/10,2/15/19
+EXI ,iShares Global Industrials ETF,1/4/10,2/15/19
+MXI ,iShares Global Materials ETF,1/4/10,2/15/19
+IXN ,iShares Global Tech ETF,1/4/10,2/15/19
+IXP ,iShares Global Comm Services E,1/4/10,2/15/19
+JXI ,iShares Global Utilities ETF,1/4/10,2/15/19
+RWX ,SPDR Dow Jones International R,1/4/10,2/15/19
+VNQI ,Vanguard Global ex-U.S. Real E,1/4/10,2/15/19
+IGF ,iShares Global Infrastructure,1/4/10,2/15/19
+BOTZ ,Global X Robotics & Artificial,1/4/10,2/15/19
+GNR ,SPDR S&P Global Natural Resour,1/4/10,2/15/19
+EWZ ,iShares MSCI Brazil ETF,1/4/10,2/15/19
+FXI ,iShares China Large-Cap ETF,1/4/10,2/15/19
+GXC ,SPDR S&P China ETF,1/4/10,2/15/19
+HAO ,Invesco China Small Cap ETF,1/4/10,2/15/19
+ECH ,iShares MSCI Chile ETF,1/4/10,2/15/19
+EWH ,iShares MSCI Hong Kong ETF,1/4/10,2/15/19
+INDA ,iShares MSCI India ETF,1/4/10,2/15/19
+EIDO ,iShares MSCI Indonesia ETF,1/4/10,2/15/19
+EWM ,iShares MSCI Malaysia ETF,1/4/10,2/15/19
+EWW ,iShares MSCI Mexico ETF,1/4/10,2/15/19
+EPOL ,iShares MSCI Poland ETF,1/4/10,2/15/19
+RSX ,VanEck Vectors Russia ETF,1/4/10,2/15/19
+EZA ,iShares MSCI South Africa ETF,1/4/10,2/15/19
+TUR ,iShares MSCI Turkey ETF,1/4/10,2/15/19
+EWY ,iShares MSCI South Korea ETF,1/4/10,2/15/19
+EWT ,iShares MSCI Taiwan ETF,1/4/10,2/15/19
+EWK ,iShares MSCI Belgium ETF,1/4/10,2/15/19
+EWQ ,iShares MSCI France ETF,1/4/10,2/15/19
+HEWG ,iShares Currency Hedged MSCI G,1/4/10,2/15/19
+EWG ,iShares MSCI Germany ETF,1/4/10,2/15/19
+EWI ,iShares MSCI Italy ETF,1/4/10,2/15/19
+EWN ,iShares MSCI Netherlands ETF,1/4/10,2/15/19
+EWP ,iShares MSCI Spain ETF,1/4/10,2/15/19
+EWD ,iShares MSCI Sweden ETF,1/4/10,2/15/19
+EWL ,iShares MSCI Switzerland ETF,1/4/10,2/15/19
+EWU ,iShares MSCI United Kingdom ET,1/4/10,2/15/19
+EWS ,iShares MSCI Singapore ETF,1/4/10,2/15/19
+EWJ ,iShares MSCI Japan ETF,1/4/10,2/15/19
+EWA ,iShares MSCI Australia ETF,1/4/10,2/15/19
+EWC ,iShares MSCI Canada ETF,1/4/10,2/15/19
+DXJ ,WisdomTree Japan Hedged Equity,1/4/10,2/15/19
+DBJP ,Xtrackers MSCI Japan Hedged Eq,1/4/10,2/15/19
+EZU ,iShares MSCI Eurozone ETF,1/4/10,2/15/19
+HEDJ ,WisdomTree Europe Hedged Equit,1/4/10,2/15/19
+HEZU ,iShares Currency Hedged MSCI E,1/4/10,2/15/19
+EPP ,iShares MSCI Pacific ex Japan,1/4/10,2/15/19
+AAXJ ,iShares MSCI All Country Asia,1/4/10,2/15/19
+IEV ,iShares Europe ETF,1/4/10,2/15/19
+VGK ,Vanguard FTSE Europe ETF,1/4/10,2/15/19
+ILF ,iShares Latin America 40 ETF,1/4/10,2/15/19
+AFK ,VanEck Vectors Africa Index ET,1/4/10,2/15/19

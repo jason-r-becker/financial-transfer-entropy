@@ -4,6 +4,7 @@ from collections import Counter
 from glob import glob
 
 import matplotlib.pyplot as plt
+import networkx as nx
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -452,93 +453,117 @@ class TransferEntropy:
             plt.setp(ax.get_yticklabels(), fontsize=fontsize)
 
 
-self = TransferEntropy()
-
-# %%
-# Set Period.
-start = '1/1/2015'
-end = '12/31/2016'
-self.set_timeperiod(start, end)
-
-# %%
-# Find network graph coordinates.
-self.build_asset_graph('SLSQP')
-
-#%%
-# Plot correlation matrix.
-self.plot_corr('spearman')
-plt.show()
-
-
-# %%
-import networkx as nx
-fig = plt.figure(figsize=[8, 8])
-corr = self.data.corr()
-
-# Transform it in a links data frame.
-links = corr.stack().reset_index()
-links.columns = ['var1', 'var2','value']
-links
-
-# Keep only correlation over a threshold and remove self correlation.
-links_filtered = links.loc[
-    (links['value'] > 0.6) & (links['var1'] != links['var2'])]
-
-# Build graph.
-G = nx.from_pandas_edgelist(links_filtered, 'var1', 'var2')
-
-# Plot the network.
-nx.draw(G, with_labels=True, node_color='lightblue', node_size=400,
-        edge_color='k',
-        linewidths=1, font_size=4)
-plt.show()
-
-# %%
-# Plot asset graphs for multiple thresholds.
-thresholds = [0.5, 0.6, 0.7]
-
-x, y = self._coordinates[:, 0], self._coordinates[:, 1]
-adjx = (max(x) - min(x)) / 10  # Give border around graph
-adjy = (max(y) - min(y)) / 10  # Give border around graph
-n = len(thresholds)
-fig, axes = plt.subplots(1, n, figsize=[n*4, 6])
-
-for t, ax in zip(thresholds, axes.flat):
-    self.plot_asset_graph(t, thresholds, ax=ax, fontsize=6)
-    ax.set_title(f'T = {t}')
-    ax.set_xlim(min(x)-adjx, max(x)+adjx)
-    ax.set_ylim(min(y)-adjy, max(y)+adjy)
-    ax.set_yticklabels([])
-    ax.set_xticklabels([])
-    ax.grid(False)
-plt.tight_layout()
-plt.show()
-
-
-# %%
-self.plot_asset_graph(0.6)
-# %%
-# Plot Transfer Entropy.
-self.compute_transfer_entropy(bins=6)
-self.plot_te()
-plt.show()
-
-# %%
-# Compute Effective Transfer Entropy.
-# *** Takes ~10 sec per simulaion with 6 bins ***
-self.compute_effective_transfer_entropy(bins=6, sims=5)
-
-# %%
-# Plot
-fig, axes = plt.subplots(1, 3, figsize=[14, 4])
-for te, ax in zip(['te', 'rte', 'ete'], axes.flat):
-    self.plot_te(te, labels=False, ax=ax, cbar=False)
-    ax.set_title(f'${te.upper()}_{{X \\rightarrow Y}}$')
-plt.tight_layout()
-plt.show()
-
-
-# %%
-fig, axes = plt.subplots(3, 4, figsize=[6,6])
-fig = plt.figure()
-plt.tight_layout()
+# self = TransferEntropy()
+#
+# # %%
+# # Set Period.
+# start = '1/1/2015'
+# end = '12/31/2016'
+# self.set_timeperiod(start, end)
+#
+# # %%
+# # Find network graph coordinates.
+# self.build_asset_graph('SLSQP')
+#
+# #%%
+# # Plot correlation matrix.
+# self.plot_corr('spearman')
+# plt.show()
+#
+#
+# # %%
+# corr = self.data.corr()
+# len(corr)
+# # Transform it in a links data frame.
+# links = corr.stack().reset_index()
+# links.columns = ['var1', 'var2','value']
+# links = links.loc[links['var1'] != links['var2']]
+#
+# fig = plt.figure(figsize=[6, 6])
+# G = nx.from_pandas_edgelist(links, 'var1', 'var2')
+# nx.draw(G, with_labels=True, node_color='lightblue', node_size=400,
+#         edge_color='grey', alpha=0.8, font_color='k',
+#         linewidths=1, font_size=8)
+# plt.show()
+#
+# # %%
+# # Keep only correlation over a threshold and remove self correlation.
+# links_filtered = links.loc[links['value'] > 0.8)]
+#
+# # Build graph.
+# fig = plt.figure(figsize=[6, 6])
+# G = nx.from_pandas_edgelist(links_filtered, 'var1', 'var2')
+#
+# nx.draw(G, with_labels=True, node_color='lightblue', node_size=400,
+#         edge_color='k',
+#         linewidths=1, font_size=8)
+# plt.show()
+#
+# # %%
+# # Manually find edges and nodes to keep.
+# edge_df = links_filtered2.loc[links['value'] > 0.8]
+# edge_list = [(df['var1'], df['var2']) for _, df in edge_df.iterrows()]
+# node_list = list(set(list(edge_df['var1']) + list(edge_df['var2'])))
+# node_labels = {node: node if node in node_list else '' for node in corr.columns}
+#
+# # Build graph.
+# G = nx.from_pandas_edgelist(links, 'var1', 'var2')
+# fig = plt.figure(figsize=[6, 6])
+#
+# nx.draw(G, with_labels=True, node_color='lightblue', node_size=400,
+#         edge_color='k', edgelist=edge_list, nodelist=node_list, labels=node_labels,
+#         linewidths=1, font_size=8)
+# plt.show()
+#
+#
+# # %%
+# # Plot asset graphs for multiple thresholds.
+# thresholds = [0.5, 0.6, 0.7]
+#
+# x, y = self._coordinates[:, 0], self._coordinates[:, 1]
+# adjx = (max(x) - min(x)) / 10  # Give border around graph
+# adjy = (max(y) - min(y)) / 10  # Give border around graph
+# n = len(thresholds)
+# fig, axes = plt.subplots(1, n, figsize=[n*4, 6])
+#
+# for t, ax in zip(thresholds, axes.flat):
+#     self.plot_asset_graph(t, thresholds, ax=ax, fontsize=6)
+#     ax.set_title(f'T = {t}')
+#     ax.set_xlim(min(x)-adjx, max(x)+adjx)
+#     ax.set_ylim(min(y)-adjy, max(y)+adjy)
+#     ax.set_yticklabels([])
+#     ax.set_xticklabels([])
+#     ax.grid(False)
+# plt.tight_layout()
+# plt.show()
+#
+#
+# # %%
+# self.plot_asset_graph(0.6)
+# # %%
+# # Plot Transfer Entropy.
+# self.compute_transfer_entropy(bins=6)
+# self.plot_te()
+# plt.show()
+#
+# # %%
+# # Compute Effective Transfer Entropy.
+# # *** Takes ~10 sec per simulaion with 6 bins ***
+# self.compute_effective_transfer_entropy(bins=6, sims=5)
+#
+# # %%
+# # Plot
+# fig, axes = plt.subplots(1, 3, figsize=[14, 4])
+# for te, ax in zip(['te', 'rte', 'ete'], axes.flat):
+#     self.plot_te(te, labels=False, ax=ax, cbar=False)
+#     ax.set_title(f'${te.upper()}_{{X \\rightarrow Y}}$')
+# plt.tight_layout()
+# plt.show()
+#
+#
+# # %%
+# fig, axes = plt.subplots(3, 4, figsize=[6,6])
+# fig = plt.figure()
+# plt.tight_layout()
+#
+#

@@ -268,5 +268,10 @@
     "SVXY ": "ProShares Short VIX Short-Term",
     "WTMF ": "WisdomTree Managed Futures Str",
     "FTLS ": "First Trust Exchange-Traded Fu",
-    "CPI ": "IQ Real Return ETF"
+    "CPI ": "IQ Real Return ETF",
+    "CDX IG CDSI GEN 5Y": "Markit CDX IG",
+    "CDX HY CDSI GEN 5Y PRC": "Markit CDX HY",
+    "ITRX EUR CDSI GEN 5Y": "Markit ITRX EUR",
+    "ITRX JAPAN CDSI GEN 5Y": "Markit ITRX JAPAN",
+    "CDX EM CDSI GEN 5Y PRC": "Markit CDX EM"
 }

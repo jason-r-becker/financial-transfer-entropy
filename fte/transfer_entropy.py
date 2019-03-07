@@ -1,6 +1,6 @@
 import json
 import warnings
-from collections import Counter
+from collections import Counter, defaultdict
 from glob import glob
 
 import matplotlib.pyplot as plt
@@ -49,7 +49,7 @@ class TransferEntropy:
 
     def __init__(self, data=None):
         self._prices = data if data is not None else self._load_data()
-        self.set_timeperiod('1/1/2014', '1/1/2019')
+        self.set_timeperiod('1/2/2014', '1/1/2019')
 
     def _read_file(self, fid):
         """Read data file as DataFrame."""
@@ -66,8 +66,9 @@ class TransferEntropy:
         fids = glob('../data/*.csv')
         df = pd.DataFrame().join(
             [self._read_file(fid) for fid in fids], how='outer')
+        df
         return df
-
+        
     def set_timeperiod(self, start=None, end=None):
         """
         Updata self.data with start and end dates for analysis.
@@ -81,7 +82,7 @@ class TransferEntropy:
 
         """
         data = self._prices.copy()
-
+    
         # Ignore warnings for missing data.
         warnings.filterwarnings('ignore')
 
@@ -90,13 +91,16 @@ class TransferEntropy:
             data = data[data.index >= pd.to_datetime(start)].copy()
         if end is not None:
             data = data[data.index <= pd.to_datetime(end)].copy()
-
-        # Drop Sundays.
-        keep_ix = [ix.weekday() != 6 for ix in list(data.index)]
+        
+        # Drop Weekends and forward fill Holidays.
+        keep_ix = [ix.weekday() < 5 for ix in list(data.index)]
         data = data[keep_ix].copy()
+        data.fillna(method='ffill', inplace=True)
+        
+        # Calculate Log Returns.
         self.data = np.log(data[1:] / data[:-1].values)  # log returns
         self.data.dropna(axis=1, inplace=True)  # Drop assets with missing data.
-
+        
         # Map asset names to DataFrame.
         with open('../data/asset_mapping.json', 'r') as fid:
             asset_map = json.load(fid)
@@ -104,7 +108,7 @@ class TransferEntropy:
         self._n = len(self.assets)
 
         # Rename DataFrame with asset names and init data matrix.
-        self.data.columns = self.assets
+        # self.data.columns = self.assets
         self._data_mat = self.data.values
 
     def _euclidean_distance(self, x, i, j):
@@ -452,70 +456,90 @@ class TransferEntropy:
             plt.setp(ax.get_xticklabels(), fontsize=fontsize)
             plt.setp(ax.get_yticklabels(), fontsize=fontsize)
 
+    def plot_corr_network(self, threshold=0.9, method='spearman',
+        ax=None, figsize=(12, 12), cmap='Blues', fontsize=8):
+        """
+        Plot correlation of assets.
+
+        Parameters
+        ----------
+        threshold: int, default=0.9
+            Lower threshold of link strength for connections in network graph.
+        method: {'spearman', 'pearson', 'kendall'}, default='spearman'
+            Correlation method.
+                - 'spearman': Spearman rank correlation
+                - 'pearson': standard correlation coefficient
+                - 'kendall': Kendall Tau correlation coefficient
+        ax: matplotlib axis, default=None
+            Matplotlib axis to plot figure, if None one is created.
+        figsize: list or tuple, default=(6, 6)
+            Figure size.
+        cmap: str, default='Blues'
+            Matploblib cmap.
+        fontsize: int, default=8
+            Fontsize for asset labels.
+        """
+        if ax is None:
+            fig, ax = plt.subplots(1, 1, figsize=figsize)
+            
+        # Find correlation matrix and transform it in a links data frame.
+        corr = self.data.corr(method)
+        links = corr.stack().reset_index()
+        links.columns = ['var1', 'var2','val']
+        links = links.loc[
+            (links['var1'] != links['var2']) & (links['val'] > threshold)]
+
+        # Find node centrality.
+        centrality = defaultdict(int)
+        for _, row in links.iterrows():
+            centrality[row['var1']] += row['val']
+
+        # Sort by node centrality.
+        nodes = sorted(centrality, key=centrality.get, reverse=True)
+        ns = np.array([centrality[node] for node in nodes])
+        node_strengths = (ns - np.min(ns)) / (np.max(ns) - np.min(ns))
+
+        # Build OrderedGraph of nodes by centrality measure.
+        G = nx.OrderedGraph()
+        G.add_nodes_from(nodes)
+        # Use temporary graph to add proper edges.
+        G_temp = nx.from_pandas_edgelist(links, 'var1', 'var2')
+        G.add_edges_from(G_temp.edges)
+
+        # Find edge strengths.
+        edge_strengths = np.array([
+            float(links.loc[
+                (links['var1']==e[0]) & (links['var2']==e[1])]['val']) \
+            for e in list(G.edges)
+            ])
+
+        # Plot network graph.
+        nx.draw_circular(G, with_labels=True,
+            cmap=cmap, node_size=1000*node_strengths, node_color=node_strengths,
+            edge_cmap=plt.get_cmap(cmap), edge_color=edge_strengths,
+            alpha=0.8, font_color='k', linewidths=1, font_size=fontsize)
 
 # self = TransferEntropy()
-#
-# # %%
-# # Set Period.
-# start = '1/1/2015'
+# self.assets
+# len(self.assets)
+# %%
+# Set Period.
+# start = '1/2/2015'
 # end = '12/31/2016'
 # self.set_timeperiod(start, end)
-#
-# # %%
-# # Find network graph coordinates.
-# self.build_asset_graph('SLSQP')
-#
-# #%%
-# # Plot correlation matrix.
+
+# %%
+# Plot correlation matrix.
 # self.plot_corr('spearman')
 # plt.show()
-#
-#
-# # %%
-# corr = self.data.corr()
-# len(corr)
-# # Transform it in a links data frame.
-# links = corr.stack().reset_index()
-# links.columns = ['var1', 'var2','value']
-# links = links.loc[links['var1'] != links['var2']]
-#
-# fig = plt.figure(figsize=[6, 6])
-# G = nx.from_pandas_edgelist(links, 'var1', 'var2')
-# nx.draw(G, with_labels=True, node_color='lightblue', node_size=400,
-#         edge_color='grey', alpha=0.8, font_color='k',
-#         linewidths=1, font_size=8)
+
+# %%
+# Find network graph coordinates.
+# self.plot_corr_network(threshold=0.88)
 # plt.show()
-#
-# # %%
-# # Keep only correlation over a threshold and remove self correlation.
-# links_filtered = links.loc[links['value'] > 0.8)]
-#
-# # Build graph.
-# fig = plt.figure(figsize=[6, 6])
-# G = nx.from_pandas_edgelist(links_filtered, 'var1', 'var2')
-#
-# nx.draw(G, with_labels=True, node_color='lightblue', node_size=400,
-#         edge_color='k',
-#         linewidths=1, font_size=8)
-# plt.show()
-#
-# # %%
-# # Manually find edges and nodes to keep.
-# edge_df = links_filtered2.loc[links['value'] > 0.8]
-# edge_list = [(df['var1'], df['var2']) for _, df in edge_df.iterrows()]
-# node_list = list(set(list(edge_df['var1']) + list(edge_df['var2'])))
-# node_labels = {node: node if node in node_list else '' for node in corr.columns}
-#
-# # Build graph.
-# G = nx.from_pandas_edgelist(links, 'var1', 'var2')
-# fig = plt.figure(figsize=[6, 6])
-#
-# nx.draw(G, with_labels=True, node_color='lightblue', node_size=400,
-#         edge_color='k', edgelist=edge_list, nodelist=node_list, labels=node_labels,
-#         linewidths=1, font_size=8)
-# plt.show()
-#
-#
+
+# --------------------- Still in-progress work below ----------------------- #
+
 # # %%
 # # Plot asset graphs for multiple thresholds.
 # thresholds = [0.5, 0.6, 0.7]

@@ -115,7 +115,7 @@ class TransferEntropy:
             self.subset_assets(self.assets)
         else:
             self.assets = list(self.data)
-        
+        self._n = len(self.assets)
         # Rename DataFrame with asset names and init data matrix.
         # self.data.columns = self.assets
         self._data_mat = self.data.values
@@ -131,6 +131,7 @@ class TransferEntropy:
         """
         self.data = self.data[assets].copy()
         self.assets = assets
+        self._n = len(self.assets)
         
     def _euclidean_distance(self, x, i, j):
         """Euclidean distance between points in x-coordinates."""

@@ -7,34 +7,12 @@ from tqdm import tqdm
 from transfer_entropy import TransferEntropy
 
 plt.style.use('fivethirtyeight')
-%matplotlib qt
 # %%
-eqs = 'SPY DIA IWM ECH EWW EWC EWZ'.split()
+eqs = 'SPY XLK XLV XLF XLC XLY XLP XLI XLE XLU XLRE XLB'\
+    ' DIA IWM ECH EWW EWC EWZ'.split()
 fi = 'AGG SHY IEI IEF TLT TIP LQD HYG MBB'.split()
 cmdtys = 'GLD SLV'.split()
-
-stockdf = pd.read_csv('../data/equities.csv',
-            usecols=['Dates']+eqs,
-            index_col=0,
-            parse_dates=True,
-            infer_datetime_format=True)
-
-bonddf = pd.read_csv('../data/fixed_income.csv',
-            usecols=['Dates']+fi,
-            index_col=0,
-            parse_dates=True,
-            infer_datetime_format=True)
-
-cmdtydf = pd.read_csv('../data/commodities.csv',
-            usecols=['Dates']+cmdtys,
-            index_col=0,
-            parse_dates=True,
-            infer_datetime_format=True)
-
-df = stockdf.join(bonddf).join(cmdtydf)[eqs+fi+cmdtys]
-# %%
-start = '1/1/2010'
-end = '1/1/2019'
+assets = eqs+fi+cmdtys
 
 # %%
 mod = TransferEntropy(data=df)

@@ -23,6 +23,8 @@ class TransferEntropy:
 
     Parameters
     ----------
+    assets: list[str], default=None
+        List of assets to use from loaded data.
     data: pd.DataFrame, default=None
         DataFrame of asset log returns with datetime index and no missing data.
         If None, price datafiles are loaded from data directory.
@@ -39,6 +41,7 @@ class TransferEntropy:
     Methods
     -------
     set_timeperiod(start, end): Set starting and ending dates for analysis.
+    subset_assets(assets): Subset assets used.
     build_asset_graph(solver): Find graph coordinates.
     compute_transfer_entorpy(bins): Return transfer entropy.
     compute_effective_transfer_entropy: Return effective transfer entropy.
@@ -47,10 +50,11 @@ class TransferEntropy:
     plot_te(te): Plot transfer entropy heatmap.
     """
 
-    def __init__(self, data=None):
+    def __init__(self, assets=None, data=None):
+        self.assets = assets
         self._prices = data if data is not None else self._load_data()
-        self.set_timeperiod('1/2/2014', '1/1/2019')
-
+        self.set_timeperiod('1/2/2009', '4/1/2019')
+        
     def _read_file(self, fid):
         """Read data file as DataFrame."""
         df = pd.read_csv(
@@ -66,7 +70,6 @@ class TransferEntropy:
         fids = glob('../data/*.csv')
         df = pd.DataFrame().join(
             [self._read_file(fid) for fid in fids], how='outer')
-        df
         return df
         
     def set_timeperiod(self, start=None, end=None):
@@ -102,15 +105,33 @@ class TransferEntropy:
         self.data.dropna(axis=1, inplace=True)  # Drop assets with missing data.
         
         # Map asset names to DataFrame.
-        with open('../data/asset_mapping.json', 'r') as fid:
-            asset_map = json.load(fid)
-        self.assets = [asset_map.get(a, a) for a in list(self.data)]
-        self._n = len(self.assets)
+        # with open('../data/asset_mapping.json', 'r') as fid:
+        #     asset_map = json.load(fid)
+        # self.assets = [asset_map.get(a, a) for a in list(self.data)]
+        # self._n = len(self.assets)
 
+        # Subset data to specified assets.
+        if self.assets is not None:
+            self.subset_assets(self.assets)
+        else:
+            self.assets = list(self.data)
+        
         # Rename DataFrame with asset names and init data matrix.
         # self.data.columns = self.assets
         self._data_mat = self.data.values
 
+    def subset_assets(self, assets):
+        """
+        Subset data to specified assets.
+        
+        Parameters
+        ----------
+        assets: list[str]
+            List of assets to use.
+        """
+        self.data = self.data[assets].copy()
+        self.assets = assets
+        
     def _euclidean_distance(self, x, i, j):
         """Euclidean distance between points in x-coordinates."""
         m = x.shape[1]
@@ -519,9 +540,12 @@ class TransferEntropy:
             edge_cmap=plt.get_cmap(cmap), edge_color=edge_strengths,
             alpha=0.8, font_color='k', linewidths=1, font_size=fontsize)
 
+
+
+
 # self = TransferEntropy()
-# self.assets
 # len(self.assets)
+
 # %%
 # Set Period.
 # start = '1/2/2015'

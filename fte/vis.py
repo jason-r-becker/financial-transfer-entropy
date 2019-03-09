@@ -20,7 +20,7 @@ eqs = 'SPY DIA XLK XLV XLF IYZ XLY XLP XLI XLE XLU XME IYR XLB XPH IWM PHO ' \
 fi = 'AGG SHY IEI IEF TLT TIP LQD HYG MBB'.split()
 cmdtys = 'GLD SLV DBA DBC USO UNG'.split()
 fx = 'FXA FXB FXC FXE FXF FXS FXY'.split()
-assets = eqs + fi + cmdtys + fx
+assets = eqs + fi + cmdtys
 
 # plot_temporal_vol_and_matrices(assets)
 # make_appendix_table(assets)
@@ -155,7 +155,6 @@ def make_appendix_table(assets=None):
         table_data['End Date'].append(dates[-1].strftime('%m/%d/%Y'))
         
     table = pd.DataFrame(table_data)
-    table.loc[table['Asset Class']=='Alternative']
     cap = 'Summary of studied assets.'
     col_fmt = 'lllccc'
     eu.latex_print(table, hide_index=True, col_fmt=col_fmt, caption=cap,
@@ -173,9 +172,9 @@ def plot_networks(assets):
     
     # %%
     # Settings.
-    corr_thresh = 0.65
-    ete_thresh_high = 0.0085
-    ete_thresh_low = 0.006
+    corr_thresh = 0.75
+    ete_thresh_high = 0.013
+    ete_thresh_low = 0.01
     # ete_thresh = (ete_thresh_high + ete_thresh_low) / 2
     ete_thresh = ete_thresh_low
     
@@ -188,12 +187,12 @@ def plot_networks(assets):
     fig, axes = plt.subplots(1, 2, figsize=(12, 12))
     fig.suptitle('Correlation Magnitude')
     mod.plot_corr_network(
-        network_type='circle',
+        nx_type='circle',
         threshold=corr_thresh,
         ax=axes[0],
         )
     mod.plot_corr_network(
-        network_type='cluster',
+        nx_type='cluster',
         threshold=corr_thresh,
         ax=axes[1],
         )
@@ -208,18 +207,18 @@ def plot_networks(assets):
     fig, axes = plt.subplots(1, 3, figsize=(20, 10))
     fig.suptitle('Transfer Entropy Out')
     mod.plot_ete_network(
-        network_type='circle',
+        nx_type='circle',
         threshold=ete_thresh,
         ax=axes[0],
         )
     mod.plot_ete_network(
-        network_type='cluster',
+        nx_type='cluster',
         threshold=ete_thresh_low,
         ax=axes[1],
         )
     axes[1].set_title('Low Threshold')
     mod.plot_ete_network(
-        network_type='cluster',
+        nx_type='cluster',
         threshold=ete_thresh_high,
         ax=axes[2],
         )
@@ -230,29 +229,29 @@ def plot_networks(assets):
     fig, axes = plt.subplots(1, 3, figsize=(20, 10))
     fig.suptitle('Transfer Entropy In')
     mod.plot_ete_network(
-        network_type='circle',
+        nx_type='circle',
         node_value='in',
         threshold=ete_thresh,
         cmap='Purples',
         ax=axes[0],
         )
     mod.plot_ete_network(
-        network_type='cluster',
+        nx_type='cluster',
         node_value='in',
         threshold=ete_thresh_low,
         cmap='Purples',
         ax=axes[1])
     axes[1].set_title('Low Threshold')
     mod.plot_ete_network(
-        network_type='cluster',
+        nx_type='cluster',
         node_value='in',
         threshold=ete_thresh_high,
         cmap='Purples',
         ax=axes[2])
     axes[2].set_title('High Threshold')
     plt.show()
-
     # %%
+    
 def plot_randomized_transfer_entropy_hists():
     n = len(self.assets)
     fig, axes = plt.subplots(n, n, figsize=(20, 20), sharex=True, sharey=True)

@@ -265,14 +265,14 @@ class TransferEntropy:
                     horizontalalignment='center', verticalalignment='center',
                     bbox=box)
 
-    def plot_corr(self, method='spearman', ax=None, figsize=(6, 6),
+    def plot_corr(self, method='pearson', ax=None, figsize=(6, 6),
                   fontsize=8, cbar=True, labels=True):
         """
         Plot correlation of assets.
 
         Parameters
         ----------
-        method: {'spearman', 'pearson', 'kendall'}, default='spearman'
+        method: {'spearman', 'pearson', 'kendall'}, default='pearson'
             Correlation method.
                 - 'spearman': Spearman rank correlation
                 - 'pearson': standard correlation coefficient
@@ -470,14 +470,14 @@ class TransferEntropy:
         self._te_max = np.max(self.te.values)
         self._te_min = np.min(self.ete.values)
 
-    def plot_te(self, te='te', labels=True, cbar=True, ax=None,
+    def plot_te(self, te='ete', labels=True, cbar=True, ax=None,
                 figsize=(6, 6), fontsize=6, vmin=None, vmax=None):
         """
         Plot correlation of assets.
 
         Parameters
         ----------
-        te: {'te', 'rte', 'ete'}, default='te'
+        te: {'te', 'rte', 'ete'}, default='ete'
             Transfer entropy to be plotted.
                 - te: transfer entropy
                 - rte: randomized transfer entropy

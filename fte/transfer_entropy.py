@@ -56,6 +56,7 @@ class TransferEntropy:
         self._prices = data if data is not None else self._load_data()
         self.set_timeperiod('1/3/2011', '12/31/2018')
         
+
     def _read_file(self, fid):
         """Read data file as DataFrame."""
         df = pd.read_csv(
@@ -72,7 +73,7 @@ class TransferEntropy:
         df = pd.DataFrame().join(
             [self._read_file(fid) for fid in fids], how='outer')
         return df
-        
+
     def set_timeperiod(self, start=None, end=None):
         """
         Updata self.data with start and end dates for analysis.
@@ -86,7 +87,7 @@ class TransferEntropy:
 
         """
         data = self._prices.copy()
-        sorted(list(data))
+
         # Ignore warnings for missing data.
         warnings.filterwarnings('ignore')
 
@@ -95,16 +96,16 @@ class TransferEntropy:
             data = data[data.index >= pd.to_datetime(start)].copy()
         if end is not None:
             data = data[data.index <= pd.to_datetime(end)].copy()
-        
+
         # Drop Weekends and forward fill Holidays.
         keep_ix = [ix.weekday() < 5 for ix in list(data.index)]
         data = data[keep_ix].copy()
         data.fillna(method='ffill', inplace=True)
-        
+        self.prices = data.copy()
         # Calculate Log Returns.
         self.data = np.log(data[1:] / data[:-1].values)  # log returns
         self.data.dropna(axis=1, inplace=True)  # Drop assets with missing data.
-        
+
         # Map asset names to DataFrame.
         # with open('../data/asset_mapping.json', 'r') as fid:
         #     asset_map = json.load(fid)
@@ -124,16 +125,17 @@ class TransferEntropy:
     def subset_assets(self, assets):
         """
         Subset data to specified assets.
-        
+
         Parameters
         ----------
         assets: list[str]
             List of assets to use.
         """
+        self.prices = self.prices[assets].copy()
         self.data = self.data[assets].copy()
         self.assets = assets
         self._n = len(self.assets)
-        
+
     def _euclidean_distance(self, x, i, j):
         """Euclidean distance between points in x-coordinates."""
         m = x.shape[1]
@@ -298,7 +300,7 @@ class TransferEntropy:
         if labels:
             plt.setp(ax.get_xticklabels(), fontsize=fontsize)
             plt.setp(ax.get_yticklabels(), fontsize=fontsize)
-            
+
         if cbar:
             cbar_ax = ax.collections[0].colorbar
             ticks = np.linspace(-1, 1, 5)
@@ -428,7 +430,7 @@ class TransferEntropy:
             transfer entropy.
         pbar: bool, default=False
             If True, show progress bar for simulations.
-            
+
         Returns
         -------
         ete: [n x n] nd.array
@@ -448,7 +450,7 @@ class TransferEntropy:
             for i in range(sims):
                 self.rte_tensor[:, :, i] = self.compute_transfer_entropy(
                     bins, shuffle=True, save=False)
-        
+
         # Peform significance test on ETE values.
         cutoff = norm(0, 1).cdf(std_threshold)
         ete = np.zeros([self._n, self._n])
@@ -465,7 +467,7 @@ class TransferEntropy:
         rte = np.mean(self.rte_tensor, axis=2)
         self.rte = pd.DataFrame(rte, columns=self.assets, index=self.assets)
         self.ete = pd.DataFrame(ete, columns=self.assets, index=self.assets)
-        
+
         # Store max and min values.
         self._te_max = np.max(self.te.values)
         self._te_min = np.min(self.ete.values)
@@ -498,7 +500,7 @@ class TransferEntropy:
 
         vmin = self._te_min if vmin is None else vmin
         vmax = self._te_max if vmax is None else vmax
-        
+
         heatmap = eval(f'self.{te}')
         sns.heatmap(heatmap, ax=ax, vmin=vmin, vmax=vmax,
                     cmap='viridis', xticklabels=labels, yticklabels=labels,
@@ -508,7 +510,8 @@ class TransferEntropy:
             plt.setp(ax.get_yticklabels(), fontsize=fontsize)
 
     def plot_corr_network(self, nx_type='circle', threshold=0.8, pos=None,
-        method='pearson', ax=None, figsize=(12, 12), cmap='Reds', fontsize=8):
+        method='pearson', ax=None, figsize=(12, 12), cmap='Reds', fontsize=8,
+        vmin=None, vmax=None):
         """
         Plot correlation of assets.
 
@@ -539,7 +542,7 @@ class TransferEntropy:
         
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
-        
+
         # Find correlation matrix and transform it in a links data frame.
         corr = self.data.corr(method).abs()
         links = corr.stack().reset_index()
@@ -569,7 +572,7 @@ class TransferEntropy:
         nc = nc.loc[node_ix]
         node_strengths = nc.values
         nodes = list(nc.index)
-    
+        
         # Build OrderedGraph of nodes by centrality measure.
         G = nx.OrderedGraph()
         G.add_nodes_from(nodes)
@@ -586,9 +589,9 @@ class TransferEntropy:
                 'cluster': nx.spring_layout,
                 }[nx_type](G)
         self.pos = pos
-        
+
         # Draw network edges.
-        edge_kwargs = {
+        kwargs = {
             'ax': ax,
             'pos': pos,
             'edge_cmap': plt.get_cmap(cmap),
@@ -598,13 +601,13 @@ class TransferEntropy:
             }
         nx_edges = sorted(G.edges(data=True), key=lambda x: x[-1]['weight'])
         for u, v, d in nx_edges:
-            edge_kwargs['edge_color'] = np.array([d['weight']])
-            edge_kwargs['width'] = np.array([d['lw']])
-            nx.draw_networkx_edges(G, edgelist=[(u,v)], **edge_kwargs)
+            kwargs['edge_color'] = np.array([d['weight']])
+            kwargs['width'] = np.array([d['lw']])
+            nx.draw_networkx_edges(G, edgelist=[(u,v)], **kwargs)
             
         # Draw network nodes and labels.
-        vmax = 1.1 * np.max(nc)
-        vmin = 0.9 * nc.iloc[int(0.7*len(nc))]
+        vmax = 1.1 * np.max(nc) if vmax is None else vmax
+        vmin = 0.8 * nc.iloc[int(0.8*len(nc))] if vmin is None else vmin
         node_colors = [max(ns, vmin*1.05) for ns in node_strengths]
         nx.draw_networkx_nodes(
             G, ax=ax, pos=pos, cmap=cmap, node_size=1000*node_strengths,
@@ -618,7 +621,8 @@ class TransferEntropy:
             bottom=False, left=False, labelbottom=False, labelleft=False)
 
     def plot_ete_network(self, nx_type='circle', node_value='out', pos=None,
-        threshold=0.01,  ax=None, figsize=(12, 12), cmap='Blues', fontsize=8):
+        threshold=0.01,  ax=None, figsize=(12, 12), cmap='Blues', fontsize=8,
+        vmin=None, vmax=None):
         """
         Plot correlation of assets.
 
@@ -688,7 +692,7 @@ class TransferEntropy:
         self.pos = pos
 
         # Draw network edges.
-        edge_kwargs = {
+        kwargs = {
             'ax': ax,
             'pos': pos,
             'arrowstyle': '-|>',
@@ -701,14 +705,14 @@ class TransferEntropy:
 
         nx_edges = sorted(G.edges(data=True), key=lambda x: x[-1]['weight'])
         for u, v, d in nx_edges:
-            edge_kwargs['edge_color'] = np.array([d['weight']])
-            edge_kwargs['width'] = np.array([d['lw']])
-            nx.draw_networkx_edges(G, edgelist=[(u,v)], **edge_kwargs)
+            kwargs['edge_color'] = np.array([d['weight']])
+            kwargs['width'] = np.array([d['lw']])
+            nx.draw_networkx_edges(G, edgelist=[(u,v)], **kwargs)
             
         # Draw network nodes and labels.
-        vmax = 1.2 * np.max(nc)
-        # vmin = 0.9 * nc.iloc[int(0.5*len(nc))]
-        vmin = -0.1
+        vmax = 1.2 * np.max(nc) if vmax is None else vmax
+        # vmin = 0.7 * nc.iloc[int(0.5*len(nc))]
+        vmin = -0.1 if vmin is None else vmin
         
         node_colors = [max(ns, vmin*1.5) for ns in node_strengths]
         nx.draw_networkx_nodes(
@@ -722,6 +726,8 @@ class TransferEntropy:
         ax.tick_params(
             bottom=False, left=False, labelbottom=False, labelleft=False)
 
+
+
 eqs = 'SPY DIA XLK XLV XLF IYZ XLY XLP XLI XLE XLU XME IYR XLB XPH IWM PHO ' \
     'SOXX WOOD FDN GNR IBB ILF ITA IYT KIE PBW ' \
     'AFK EZA ECH EWW EWC EWZ EEM EIDO EPOL EPP EWA EWD EWG EWH EWJ EWI EWK ' \
@@ -731,13 +737,13 @@ cmdtys = 'GLD SLV DBA DBC USO UNG'.split()
 assets = eqs + fi + cmdtys
 
 
-#
-# self = TransferEntropy(assets=assets[::2])
-#
-# # Set Period.
-# start = '1/2/2011'
-# end = '12/31/2018'
-# self.set_timeperiod(start, end)
+
+self = TransferEntropy(assets=assets[::2])
+
+# Set Period.
+start = '1/2/2011'
+end = '12/31/2018'
+self.set_timeperiod(start, end)
 # #
 # # %%
 # # Plot correlation matrix.
@@ -745,19 +751,21 @@ assets = eqs + fi + cmdtys
 # plt.show()
 #
 # %%
-# corr_thresh = 0.75
-# fig, axes = plt.subplots(1, 2, figsize=(12, 12), sharex=True, sharey=True)
-# fig.suptitle('Correlation Magnitude')
-# self.plot_corr_network(
-#     nx_type='circle',
-#     threshold=corr_thresh,
-#     ax=axes[0],
-#     )
-# self.plot_corr_network(
-#     nx_type='cluster',
-#     threshold=corr_thresh,
-#     ax=axes[1],
-#     )
+corr_thresh = 0.75
+fig, axes = plt.subplots(1, 2, figsize=(12, 12), sharex=True, sharey=True)
+fig.suptitle('Correlation Magnitude')
+self.plot_corr_network(
+    nx_type='circle',
+    threshold=corr_thresh,
+    ax=axes[0],
+    vmin=0.3,
+    vmax=1.2,
+    )
+self.plot_corr_network(
+    nx_type='cluster',
+    threshold=corr_thresh,
+    ax=axes[1],
+    )
 # # %%
 # # Find network graph coordinates.
 # corr_thresh = 0.5
@@ -767,7 +775,6 @@ assets = eqs + fi + cmdtys
 # self.plot_corr_network(nx_type='cluster', threshold=corr_thresh)
 # plt.show()
 #
-# plt.plot(nc)
 # # %%
 # Compute effective transfer entropy.
 # self.compute_effective_transfer_entropy(sims=5, pbar=True)

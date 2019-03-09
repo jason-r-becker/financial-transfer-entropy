@@ -507,19 +507,21 @@ class TransferEntropy:
             plt.setp(ax.get_xticklabels(), fontsize=fontsize)
             plt.setp(ax.get_yticklabels(), fontsize=fontsize)
 
-    def plot_corr_network(self, network_type='circle', threshold=0.8,
+    def plot_corr_network(self, nx_type='circle', threshold=0.8, pos=None,
         method='pearson', ax=None, figsize=(12, 12), cmap='Reds', fontsize=8):
         """
         Plot correlation of assets.
 
         Parameters
         ----------
-        network_type: {'circle', 'cluster'}, default='circle'
+        nx_type: {'circle', 'cluster'}, default='circle'
             Type of network graph.
                 - 'circle': Circular graph in decreasing node strength order.
                 - 'cluster': Spring graph of clusters.
         threshold: int, default=0.9
             Lower threshold of link strength for connections in network graph.
+        pos: dict, default=None
+            Dictionary with nodes as keys and positions as values.
         method: {'spearman', 'pearson', 'kendall'}, default='spearman'
             Correlation method.
                 - 'spearman': Spearman rank correlation
@@ -534,15 +536,16 @@ class TransferEntropy:
         fontsize: int, default=8
             Fontsize for asset labels.
         """
+        
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
         
         # Find correlation matrix and transform it in a links data frame.
-        corr = self.data.corr(method)
+        corr = self.data.corr(method).abs()
         links = corr.stack().reset_index()
         links.columns = ['in', 'out', 'weight']
         links = links.loc[(links['in'] != links['out'])
-                          & (np.abs(links['weight']) > threshold)]
+                          & (links['weight'] > threshold)]
         links = links[['out', 'in', 'weight']].reset_index(drop=True)
 
         # Subset to only use upper triangle portion of correlation matrix.
@@ -556,62 +559,72 @@ class TransferEntropy:
                 edges[(row['out'], row['in'])] += 1
                 ix.append(i)
         links = links.loc[ix]
-        
-        # Find node centrality.
-        centrality = defaultdict(int)
-        for _, row in links.iterrows():
-            centrality[row['out']] += row['weight']
-            centrality[row['in']] += row['weight']
 
-        # Sort by node centrality, make node strength range [0.2, 1].
-        nodes = sorted(centrality, key=centrality.get, reverse=True)
-        ns = np.array([centrality[node] for node in nodes])
-        node_strengths = 0.2 + 0.8 * (ns-np.min(ns)) / (np.max(ns)-np.min(ns))
-        
+        # Sort by node centrality, and minmax range.
+        nc = np.sum(corr, axis=1) - 1
+        nc = (nc-np.min(nc)) / (np.max(nc)-np.min(nc))
+        nc.sort_values(inplace=True, ascending=False)
+        nx_nodes = list(set(list(links['out']) + list(links['in'])))
+        node_ix = [node in nx_nodes for node in nc.index]
+        nc = nc.loc[node_ix]
+        node_strengths = nc.values
+        nodes = list(nc.index)
+    
         # Build OrderedGraph of nodes by centrality measure.
         G = nx.OrderedGraph()
         G.add_nodes_from(nodes)
-        G.add_weighted_edges_from(list(links.itertuples(index=False)))
+        w = links['weight'].values
+        lwidths = np.round(0.3 + 3*((w - np.min(w)) / (np.max(w)-np.min(w))), 2)
+        edge_tuples = list(links[['in', 'out']].itertuples(index=False))
+        for edge, w, lw in zip(edge_tuples, links['weight'].values, lwidths):
+            G.add_edge(*edge, weight=w, lw=lw)
+            
+        # Get graph position.
+        if pos is None:
+            pos = {
+                'circle': nx.circular_layout,
+                'cluster': nx.spring_layout,
+                }[nx_type](G)
+        self.pos = pos
         
-        # Networkx automatically scales color scheme and node size to make the
-        # minimum 0, resulting in no color or circle node for weakest
-        # connection/node. Fix this by adding a blank node with strenth of 0
-        # and edge strength of 80% of smallest edge to largest node.
-        G.add_node('')
-        G.add_edge('', nodes[0], weight=0.8*np.min(links['weight']))
-        node_strengths = np.append(node_strengths, 0)
-        
-        # Find edge weights.
-        edge_weights = np.array([G.edges[e]['weight'] for e in list(G.edges)])
-
-        # Plot network graph.
-        kwargs = {
+        # Draw network edges.
+        edge_kwargs = {
             'ax': ax,
-            'with_labels': True,
-            'cmap': cmap,
-            'node_size': 1000*node_strengths,
-            'node_color': node_strengths,
+            'pos': pos,
             'edge_cmap': plt.get_cmap(cmap),
-            'edge_color': edge_weights,
-            'alpha': 0.8,
-            'font_color': 'k',
-            'linewidths': 1,
-            'font_size': fontsize,
+            'alpha': 0.7,
+            'edge_vmin': 0.8 * np.min(links['weight']),
+            'edge_vmax': np.max(links['weight']),
             }
+        nx_edges = sorted(G.edges(data=True), key=lambda x: x[-1]['weight'])
+        for u, v, d in nx_edges:
+            edge_kwargs['edge_color'] = np.array([d['weight']])
+            edge_kwargs['width'] = np.array([d['lw']])
+            nx.draw_networkx_edges(G, edgelist=[(u,v)], **edge_kwargs)
+            
+        # Draw network nodes and labels.
+        vmax = 1.1 * np.max(nc)
+        vmin = 0.9 * nc.iloc[int(0.7*len(nc))]
+        node_colors = [max(ns, vmin*1.05) for ns in node_strengths]
+        nx.draw_networkx_nodes(
+            G, ax=ax, pos=pos, cmap=cmap, node_size=1000*node_strengths,
+            node_color=node_colors, alpha=0.9, vmax=vmax, vmin=vmin)
+        nx.draw_networkx_labels(
+            G, ax=ax, pos=pos, font_weight='bold', font_size=fontsize)
         
-        if network_type == 'circle':
-            nx.draw_circular(G, **kwargs)
-        elif network_type == 'cluster':
-            nx.draw(G, **kwargs)
+        # Hide axis ticks and grid.
+        ax.grid(False)
+        ax.tick_params(
+            bottom=False, left=False, labelbottom=False, labelleft=False)
 
-    def plot_ete_network(self, network_type='circle', node_value='out',
+    def plot_ete_network(self, nx_type='circle', node_value='out', pos=None,
         threshold=0.01,  ax=None, figsize=(12, 12), cmap='Blues', fontsize=8):
         """
         Plot correlation of assets.
 
         Parameters
         ----------
-        network_type: {'circle', 'cluster'}, default='circle'
+        nx_type: {'circle', 'cluster'}, default='circle'
             Type of network graph.
                 - 'circle': Circular graph in decreasing node strength order.
                 - 'cluster': Spring graph of clusters.
@@ -619,6 +632,8 @@ class TransferEntropy:
             Transfer entropy node centraily measure.
                 'out': Total transfer entropy out of each node.
                 'in': Total transfer entropy in to each node.
+        pos: dict, default=None
+            Dictionary with nodes as keys and positions as values.
         threshold: int, default=0.01
             Lower threshold of link strength for connections in network graph.
         ax: matplotlib axis, default=None
@@ -644,71 +659,84 @@ class TransferEntropy:
             msg += f'{np.max(self.ete.values):.4f}'
             raise ValueError(msg)
             
-        # Find node centrality.
-        all_nodes = list(set(list(links['out']) + list(links['in'])))
-        centrality = {node: 0 for node in all_nodes}
-        for _, row in links.iterrows():
-            centrality[row[node_value]] += row['weight']
+        # Sort by node centrality, and minmax range.
+        axis = {'in': 1, 'out': 0}[node_value]
+        nc = np.sum(self.ete, axis=axis)
+        nc = (nc-np.min(nc)) / (np.max(nc)-np.min(nc))
+        nc.sort_values(inplace=True, ascending=False)
+        nx_nodes = list(set(list(links['out']) + list(links['in'])))
+        node_ix = [node in nx_nodes for node in nc.index]
+        nc = nc.loc[node_ix]
+        node_strengths = 0.1 + 0.9*nc.values
+        nodes = list(nc.index)
         
-        # Sort by node centrality, make node strength range [0.2, 1].
-        nodes = sorted(centrality, key=centrality.get, reverse=True)
-        ns = np.array([centrality[node] for node in nodes])
-        node_strengths = 0.2 + 0.8 * (ns-np.min(ns)) / (np.max(ns)-np.min(ns))
-        
-        # Build Ordered Directed Graph of nodes by centrality measure.
+        # Build OrderedGraph of nodes by centrality measure.
         G = nx.OrderedDiGraph()
         G.add_nodes_from(nodes)
-        G.add_weighted_edges_from(list(links.itertuples(index=False)))
-        
-        # Networkx automatically scales color scheme and node size to make the
-        # minimum 0, resulting in no color or circle node for weakest
-        # connection/node. Fix this by adding a blank node with strenth of 0
-        # and edge strength of 80% of smallest edge to largest node.
-        G.add_node('')
-        G.add_edge('', nodes[0], weight=0.8*np.min(links['weight']))
-        node_strengths = np.append(node_strengths, 0)
-        
-        # Find edge weights.
-        edge_weights = np.array([G.edges[e]['weight'] for e in list(G.edges)])
-        
-        # Plot network graph.
-        kwargs = {
-            'ax': ax,
-            'with_labels': True,
-            'cmap': cmap,
-            'node_size': 1000*node_strengths,
-            'node_color': node_strengths,
-            'edge_cmap': plt.get_cmap(cmap),
-            'edge_color': edge_weights,
-            'alpha': 0.8,
-            'font_color': 'k',
-            'linewidths': 1,
-            'font_size': fontsize,
-            }
-        
-        if network_type == 'circle':
-            nx.draw_circular(G, **kwargs)
-        elif network_type == 'cluster':
-            nx.draw(G, **kwargs)
+        w = links['weight'].values
+        lwidths = np.round(0.1 + 3*((w - np.min(w)) / (np.max(w)-np.min(w))), 2)
+        edge_tuples = list(links[['in', 'out']].itertuples(index=False))
+        for edge, w, lw in zip(edge_tuples, links['weight'].values, lwidths):
+            G.add_edge(*edge, weight=w, lw=lw)
 
-# eqs = 'SPY DIA XLK XLV XLF IYZ XLY XLP XLI XLE XLU XME IYR XLB XPH IWM PHO ' \
-#     'SOXX WOOD FDN GNR IBB ILF ITA IYT KIE PBW ' \
-#     'AFK EZA ECH EWW EWC EWZ EEM EIDO EPOL EPP EWA EWD EWG EWH EWJ EWI EWK ' \
-#     'EWL EWM EWP EWQ EWS EWT EWU EWY GXC HAO EZU RSX TUR'.split()
-# fi = 'AGG SHY IEI IEF TLT TIP LQD HYG MBB'.split()
-# cmdtys = 'GLD SLV DBA DBC USO UNG'.split()
-# fx = 'FXA FXB FXC FXE FXF FXS FXY'.split()
-# assets = eqs + fi + cmdtys + fx
+        # Get graph position.
+        if pos is None:
+            pos = {
+                'circle': nx.circular_layout,
+                'cluster': nx.spring_layout,
+                }[nx_type](G)
+        self.pos = pos
+
+        # Draw network edges.
+        edge_kwargs = {
+            'ax': ax,
+            'pos': pos,
+            'arrowstyle': '-|>',
+            'arrowsize': 15,
+            'edge_cmap': plt.get_cmap(cmap),
+            'alpha': 0.6,
+            'edge_vmin': 0.8 * np.min(links['weight']),
+            'edge_vmax': np.max(links['weight']),
+            }
+
+        nx_edges = sorted(G.edges(data=True), key=lambda x: x[-1]['weight'])
+        for u, v, d in nx_edges:
+            edge_kwargs['edge_color'] = np.array([d['weight']])
+            edge_kwargs['width'] = np.array([d['lw']])
+            nx.draw_networkx_edges(G, edgelist=[(u,v)], **edge_kwargs)
+            
+        # Draw network nodes and labels.
+        vmax = 1.2 * np.max(nc)
+        # vmin = 0.9 * nc.iloc[int(0.5*len(nc))]
+        vmin = -0.1
+        
+        node_colors = [max(ns, vmin*1.5) for ns in node_strengths]
+        nx.draw_networkx_nodes(
+            G, ax=ax, pos=pos, cmap=cmap, node_size=1000*node_strengths,
+            node_color=node_colors, alpha=0.9, vmax=vmax, vmin=vmin)
+        nx.draw_networkx_labels(
+            G, ax=ax, pos=pos, font_weight='bold', font_size=fontsize)
+        
+        # Hide axis ticks and grid.
+        ax.grid(False)
+        ax.tick_params(
+            bottom=False, left=False, labelbottom=False, labelleft=False)
+
+eqs = 'SPY DIA XLK XLV XLF IYZ XLY XLP XLI XLE XLU XME IYR XLB XPH IWM PHO ' \
+    'SOXX WOOD FDN GNR IBB ILF ITA IYT KIE PBW ' \
+    'AFK EZA ECH EWW EWC EWZ EEM EIDO EPOL EPP EWA EWD EWG EWH EWJ EWI EWK ' \
+    'EWL EWM EWP EWQ EWS EWT EWU EWY GXC HAO EZU RSX TUR'.split()
+fi = 'AGG SHY IEI IEF TLT TIP LQD HYG MBB'.split()
+cmdtys = 'GLD SLV DBA DBC USO UNG'.split()
+assets = eqs + fi + cmdtys
+
 
 #
-# self = TransferEntropy(assets=assets2)
-
-# len(self.assets)
-# #
-# # # %%
+# self = TransferEntropy(assets=assets[::2])
+#
 # # Set Period.
-# start = '1/2/2013'
-# end = '12/31/2013'
+# start = '1/2/2011'
+# end = '12/31/2018'
 # self.set_timeperiod(start, end)
 # #
 # # %%
@@ -716,41 +744,116 @@ class TransferEntropy:
 # self.plot_corr(cbar=True)
 # plt.show()
 #
+# %%
+# corr_thresh = 0.75
+# fig, axes = plt.subplots(1, 2, figsize=(12, 12), sharex=True, sharey=True)
+# fig.suptitle('Correlation Magnitude')
+# self.plot_corr_network(
+#     nx_type='circle',
+#     threshold=corr_thresh,
+#     ax=axes[0],
+#     )
+# self.plot_corr_network(
+#     nx_type='cluster',
+#     threshold=corr_thresh,
+#     ax=axes[1],
+#     )
 # # %%
 # # Find network graph coordinates.
-# self.plot_corr_network(network_type='circle', threshold=0.65)
+# corr_thresh = 0.5
+# self.plot_corr_network(nx_type='circle', threshold=corr_thresh)
 # plt.show()
 #
-# self.plot_corr_network(network_type='cluster', threshold=0.65)
+# self.plot_corr_network(nx_type='cluster', threshold=corr_thresh)
 # plt.show()
 #
+# plt.plot(nc)
 # # %%
-# # Compute effective transfer entropy.
-# self.compute_effective_transfer_entropy(sims=1000, pbar=True)
+# Compute effective transfer entropy.
+# self.compute_effective_transfer_entropy(sims=5, pbar=True)
 
-
+# ete = self.ete
 # %%
 
 # # %%
-# # Plot effective transfer entropy.
+# Plot effective transfer entropy.
 # self.plot_te(te='ete', vmax=0.5*np.max(self.te.values))
 # plt.show()
-#
+
 # # %%
+# self.ete = ete.copy()
+#
+# # Plot effective transfer entropy out.
+# np.max(self.ete.values)
+# ete_thresh_high = 0.018
+# ete_thresh_low = 0.012
+#
+# fig, axes = plt.subplots(1, 3, figsize=(20, 10))
+# fig.suptitle('Transfer Entropy Out')
+# self.plot_ete_network(
+#     nx_type='circle',
+#     node_value='out',
+#     threshold=ete_thresh_low,
+#     ax=axes[0],
+#     )
+# self.plot_ete_network(
+#     nx_type='cluster',
+#     node_value='out',
+#     threshold=ete_thresh_low,
+#     ax=axes[1],
+#     )
+# axes[1].set_title('Low Threshold')
+# self.plot_ete_network(
+#     nx_type='cluster',
+#     node_value='out',
+#     threshold=ete_thresh_high,
+#     # pos=self.pos,
+#     ax=axes[2],
+#     )
+# axes[2].set_title('High Threshold')
+# plt.show()
+#
+# # Plot effective transfer entropy in.
+# fig, axes = plt.subplots(1, 3, figsize=(20, 10))
+# fig.suptitle('Transfer Entropy In')
+# self.plot_ete_network(
+#     nx_type='circle',
+#     node_value='in',
+#     threshold=ete_thresh_low,
+#     cmap='Purples',
+#     ax=axes[0],
+#     )
+# self.plot_ete_network(
+#     nx_type='cluster',
+#     node_value='in',
+#     threshold=ete_thresh_low,
+#     cmap='Purples',
+#     ax=axes[1])
+# axes[1].set_title('Low Threshold')
+# self.plot_ete_network(
+#     nx_type='cluster',
+#     node_value='in',
+#     threshold=ete_thresh_high,
+#     cmap='Purples',
+#     # pos=self.pos,
+#     ax=axes[2])
+# axes[2].set_title('High Threshold')
+# plt.show()
+# %%
 # # Find network graph coordinates.
 # thresh = 0.03
-# self.plot_ete_network(network_type='circle', threshold=thresh)
+# self.plot_ete_network(nx_type='circle', threshold=thresh)
 # plt.show()
 #
-# self.plot_ete_network(network_type='cluster', threshold=thresh)
+# self.plot_ete_network(nx_type='cluster', threshold=thresh)
 # plt.show()
 #
 # # %%
-# self.plot_ete_network(network_type='circle', node_value='in', threshold=thresh,
+# self.plot_ete_network(nx_type='circle', node_value='in', threshold=thresh,
 #                       cmap='Purples')
 # plt.show()
 #
-# self.plot_ete_network(network_type='cluster', node_value='in', threshold=thresh,
+# self.plot_ete_network(nx_type='cluster', node_value='in', threshold=thresh,
 #                       cmap='Purples')
 # plt.show()
 

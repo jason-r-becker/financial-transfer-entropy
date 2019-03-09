@@ -11,6 +11,7 @@ import seaborn as sns
 from scipy.optimize import minimize
 from scipy.stats import norm
 from tqdm import tqdm
+
 plt.style.use('fivethirtyeight')
 
 
@@ -728,22 +729,22 @@ class TransferEntropy:
 
 
 
-eqs = 'SPY DIA XLK XLV XLF IYZ XLY XLP XLI XLE XLU XME IYR XLB XPH IWM PHO ' \
-    'SOXX WOOD FDN GNR IBB ILF ITA IYT KIE PBW ' \
-    'AFK EZA ECH EWW EWC EWZ EEM EIDO EPOL EPP EWA EWD EWG EWH EWJ EWI EWK ' \
-    'EWL EWM EWP EWQ EWS EWT EWU EWY GXC HAO EZU RSX TUR'.split()
-fi = 'AGG SHY IEI IEF TLT TIP LQD HYG MBB'.split()
-cmdtys = 'GLD SLV DBA DBC USO UNG'.split()
-assets = eqs + fi + cmdtys
-
-
-
-self = TransferEntropy(assets=assets[::2])
-
-# Set Period.
-start = '1/2/2011'
-end = '12/31/2018'
-self.set_timeperiod(start, end)
+# eqs = 'SPY DIA XLK XLV XLF IYZ XLY XLP XLI XLE XLU XME IYR XLB XPH IWM PHO ' \
+#     'SOXX WOOD FDN GNR IBB ILF ITA IYT KIE PBW ' \
+#     'AFK EZA ECH EWW EWC EWZ EEM EIDO EPOL EPP EWA EWD EWG EWH EWJ EWI EWK ' \
+#     'EWL EWM EWP EWQ EWS EWT EWU EWY GXC HAO EZU RSX TUR'.split()
+# fi = 'AGG SHY IEI IEF TLT TIP LQD HYG MBB'.split()
+# cmdtys = 'GLD SLV DBA DBC USO UNG'.split()
+# assets = eqs + fi + cmdtys
+#
+#
+#
+# self = TransferEntropy(assets=assets[::2])
+#
+# # Set Period.
+# start = '1/2/2011'
+# end = '12/31/2018'
+# self.set_timeperiod(start, end)
 # #
 # # %%
 # # Plot correlation matrix.
@@ -751,21 +752,21 @@ self.set_timeperiod(start, end)
 # plt.show()
 #
 # %%
-corr_thresh = 0.75
-fig, axes = plt.subplots(1, 2, figsize=(12, 12), sharex=True, sharey=True)
-fig.suptitle('Correlation Magnitude')
-self.plot_corr_network(
-    nx_type='circle',
-    threshold=corr_thresh,
-    ax=axes[0],
-    vmin=0.3,
-    vmax=1.2,
-    )
-self.plot_corr_network(
-    nx_type='cluster',
-    threshold=corr_thresh,
-    ax=axes[1],
-    )
+# corr_thresh = 0.75
+# fig, axes = plt.subplots(1, 2, figsize=(12, 12), sharex=True, sharey=True)
+# fig.suptitle('Correlation Magnitude')
+# self.plot_corr_network(
+#     nx_type='circle',
+#     threshold=corr_thresh,
+#     ax=axes[0],
+#     vmin=0.3,
+#     vmax=1.2,
+#     )
+# self.plot_corr_network(
+#     nx_type='cluster',
+#     threshold=corr_thresh,
+#     ax=axes[1],
+#     )
 # # %%
 # # Find network graph coordinates.
 # corr_thresh = 0.5
@@ -783,14 +784,14 @@ self.plot_corr_network(
 # %%
 
 # # %%
-# Plot effective transfer entropy.
+# # Plot effective transfer entropy.
 # self.plot_te(te='ete', vmax=0.5*np.max(self.te.values))
 # plt.show()
 
 # # %%
 # self.ete = ete.copy()
 #
-# # Plot effective transfer entropy out.
+# Plot effective transfer entropy out.
 # np.max(self.ete.values)
 # ete_thresh_high = 0.018
 # ete_thresh_low = 0.012

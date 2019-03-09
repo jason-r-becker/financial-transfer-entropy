@@ -54,7 +54,7 @@ class TransferEntropy:
     def __init__(self, assets=None, data=None):
         self.assets = assets
         self._prices = data if data is not None else self._load_data()
-        self.set_timeperiod('1/2/2009', '4/1/2019')
+        self.set_timeperiod('1/3/2011', '12/31/2018')
         
     def _read_file(self, fid):
         """Read data file as DataFrame."""
@@ -64,7 +64,7 @@ class TransferEntropy:
             parse_dates=True,
             infer_datetime_format=True,
             )
-        return df.dropna(axis=1)
+        return df
 
     def _load_data(self):
         """Load data from data directory into single into DataFrame."""
@@ -86,7 +86,7 @@ class TransferEntropy:
 
         """
         data = self._prices.copy()
-    
+        sorted(list(data))
         # Ignore warnings for missing data.
         warnings.filterwarnings('ignore')
 
@@ -691,14 +691,18 @@ class TransferEntropy:
         elif network_type == 'cluster':
             nx.draw(G, **kwargs)
 
-# eqs = 'SPY XLK XLV XLF IYZ XLY XLP XLI XLE XLU IYR XLB'\
-#     ' DIA IWM ECH EWW EWC EWZ'.split()
+# eqs = 'SPY DIA XLK XLV XLF IYZ XLY XLP XLI XLE XLU XME IYR XLB XPH IWM PHO ' \
+#     'SOXX WOOD FDN GNR IBB ILF ITA IYT KIE PBW ' \
+#     'AFK EZA ECH EWW EWC EWZ EEM EIDO EPOL EPP EWA EWD EWG EWH EWJ EWI EWK ' \
+#     'EWL EWM EWP EWQ EWS EWT EWU EWY GXC HAO EZU RSX TUR'.split()
 # fi = 'AGG SHY IEI IEF TLT TIP LQD HYG MBB'.split()
 # cmdtys = 'GLD SLV DBA DBC USO UNG'.split()
-# assets = eqs + fi + cmdtys
+# fx = 'FXA FXB FXC FXE FXF FXS FXY'.split()
+# assets = eqs + fi + cmdtys + fx
+
 #
-# assets2 = 'USO GLD XLE XLK'.split()
 # self = TransferEntropy(assets=assets2)
+
 # len(self.assets)
 # #
 # # # %%

@@ -8,35 +8,24 @@ from transfer_entropy import TransferEntropy
 
 plt.style.use('fivethirtyeight')
 # %%
-eqs = 'SPY XLK XLV XLF XLC XLY XLP XLI XLE XLU XLRE XLB'\
+eqs = 'SPY XLK XLV XLF IYZ XLY XLP XLI XLE XLU IYR XLB'\
     ' DIA IWM ECH EWW EWC EWZ'.split()
 fi = 'AGG SHY IEI IEF TLT TIP LQD HYG MBB'.split()
 cmdtys = 'GLD SLV'.split()
-assets = eqs+fi+cmdtys
+assets = eqs + fi + cmdtys
 
 # %%
-mod = TransferEntropy(data=df)
-mod.set_timeperiod(start, end)
+mod = TransferEntropy(assets=assets)
 mod.compute_effective_transfer_entropy()
 te_mat = mod.ete.values.copy()
-te_mat_nz = mod.ete.values.copy()
-n, m = te_mat_nz.shape
-for i in range(n):
-    for j in range(m):
-        if te_mat_nz[i, j] < 0:
-            te_mat_nz[i, j] = 0
-
 
 prices = df.loc[start:end].resample('M').last()
 returns = (prices/prices.shift(1).values-1).dropna()
 cov = np.cov(returns, rowvar=False)
 rets = returns.mean().values.reshape(-1, 1)
 # %%
-# rets = np.matrix('.1; .12; .07')
-# cov = np.matrix('0.06, 0.0377, 0.0259; 0.0377, 0.095, 0.0285; 0.0259, 0.0285, 0.0287')
-
 n = cov.shape[0]
-sims = 1000000
+sims = 10000
 
 port_rets = np.zeros(sims)
 port_vols = np.zeros(sims)

@@ -54,8 +54,13 @@ class TransferEntropy:
     def __init__(self, assets=None, data=None):
         self.assets = assets
         self._prices = data if data is not None else self._load_data()
-        self.set_timeperiod('1/2/2009', '4/1/2019')
+<<<<<<< Updated upstream
+        self.set_timeperiod('1/3/2011', '12/31/2018')
         
+=======
+        self.set_timeperiod('1/2/2009', '4/1/2019')
+
+>>>>>>> Stashed changes
     def _read_file(self, fid):
         """Read data file as DataFrame."""
         df = pd.read_csv(
@@ -64,7 +69,7 @@ class TransferEntropy:
             parse_dates=True,
             infer_datetime_format=True,
             )
-        return df.dropna(axis=1)
+        return df
 
     def _load_data(self):
         """Load data from data directory into single into DataFrame."""
@@ -72,7 +77,7 @@ class TransferEntropy:
         df = pd.DataFrame().join(
             [self._read_file(fid) for fid in fids], how='outer')
         return df
-        
+
     def set_timeperiod(self, start=None, end=None):
         """
         Updata self.data with start and end dates for analysis.
@@ -86,7 +91,11 @@ class TransferEntropy:
 
         """
         data = self._prices.copy()
-    
+<<<<<<< Updated upstream
+        sorted(list(data))
+=======
+
+>>>>>>> Stashed changes
         # Ignore warnings for missing data.
         warnings.filterwarnings('ignore')
 
@@ -95,16 +104,16 @@ class TransferEntropy:
             data = data[data.index >= pd.to_datetime(start)].copy()
         if end is not None:
             data = data[data.index <= pd.to_datetime(end)].copy()
-        
+
         # Drop Weekends and forward fill Holidays.
         keep_ix = [ix.weekday() < 5 for ix in list(data.index)]
         data = data[keep_ix].copy()
         data.fillna(method='ffill', inplace=True)
-        
+        self.prices = data.copy()
         # Calculate Log Returns.
         self.data = np.log(data[1:] / data[:-1].values)  # log returns
         self.data.dropna(axis=1, inplace=True)  # Drop assets with missing data.
-        
+
         # Map asset names to DataFrame.
         # with open('../data/asset_mapping.json', 'r') as fid:
         #     asset_map = json.load(fid)
@@ -124,16 +133,17 @@ class TransferEntropy:
     def subset_assets(self, assets):
         """
         Subset data to specified assets.
-        
+
         Parameters
         ----------
         assets: list[str]
             List of assets to use.
         """
+        self.prices = self.prices[assets].copy()
         self.data = self.data[assets].copy()
         self.assets = assets
         self._n = len(self.assets)
-        
+
     def _euclidean_distance(self, x, i, j):
         """Euclidean distance between points in x-coordinates."""
         m = x.shape[1]
@@ -298,7 +308,7 @@ class TransferEntropy:
         if labels:
             plt.setp(ax.get_xticklabels(), fontsize=fontsize)
             plt.setp(ax.get_yticklabels(), fontsize=fontsize)
-            
+
         if cbar:
             cbar_ax = ax.collections[0].colorbar
             ticks = np.linspace(-1, 1, 5)
@@ -428,7 +438,7 @@ class TransferEntropy:
             transfer entropy.
         pbar: bool, default=False
             If True, show progress bar for simulations.
-            
+
         Returns
         -------
         ete: [n x n] nd.array
@@ -448,7 +458,7 @@ class TransferEntropy:
             for i in range(sims):
                 self.rte_tensor[:, :, i] = self.compute_transfer_entropy(
                     bins, shuffle=True, save=False)
-        
+
         # Peform significance test on ETE values.
         cutoff = norm(0, 1).cdf(std_threshold)
         ete = np.zeros([self._n, self._n])
@@ -465,7 +475,7 @@ class TransferEntropy:
         rte = np.mean(self.rte_tensor, axis=2)
         self.rte = pd.DataFrame(rte, columns=self.assets, index=self.assets)
         self.ete = pd.DataFrame(ete, columns=self.assets, index=self.assets)
-        
+
         # Store max and min values.
         self._te_max = np.max(self.te.values)
         self._te_min = np.min(self.ete.values)
@@ -498,7 +508,7 @@ class TransferEntropy:
 
         vmin = self._te_min if vmin is None else vmin
         vmax = self._te_max if vmax is None else vmax
-        
+
         heatmap = eval(f'self.{te}')
         sns.heatmap(heatmap, ax=ax, vmin=vmin, vmax=vmax,
                     cmap='viridis', xticklabels=labels, yticklabels=labels,
@@ -536,7 +546,7 @@ class TransferEntropy:
         """
         if ax is None:
             fig, ax = plt.subplots(1, 1, figsize=figsize)
-        
+
         # Find correlation matrix and transform it in a links data frame.
         corr = self.data.corr(method)
         links = corr.stack().reset_index()
@@ -556,7 +566,7 @@ class TransferEntropy:
                 edges[(row['out'], row['in'])] += 1
                 ix.append(i)
         links = links.loc[ix]
-        
+
         # Find node centrality.
         centrality = defaultdict(int)
         for _, row in links.iterrows():
@@ -567,12 +577,12 @@ class TransferEntropy:
         nodes = sorted(centrality, key=centrality.get, reverse=True)
         ns = np.array([centrality[node] for node in nodes])
         node_strengths = 0.2 + 0.8 * (ns-np.min(ns)) / (np.max(ns)-np.min(ns))
-        
+
         # Build OrderedGraph of nodes by centrality measure.
         G = nx.OrderedGraph()
         G.add_nodes_from(nodes)
         G.add_weighted_edges_from(list(links.itertuples(index=False)))
-        
+
         # Networkx automatically scales color scheme and node size to make the
         # minimum 0, resulting in no color or circle node for weakest
         # connection/node. Fix this by adding a blank node with strenth of 0
@@ -580,7 +590,7 @@ class TransferEntropy:
         G.add_node('')
         G.add_edge('', nodes[0], weight=0.8*np.min(links['weight']))
         node_strengths = np.append(node_strengths, 0)
-        
+
         # Find edge weights.
         edge_weights = np.array([G.edges[e]['weight'] for e in list(G.edges)])
 
@@ -598,7 +608,7 @@ class TransferEntropy:
             'linewidths': 1,
             'font_size': fontsize,
             }
-        
+
         if network_type == 'circle':
             nx.draw_circular(G, **kwargs)
         elif network_type == 'cluster':
@@ -643,23 +653,23 @@ class TransferEntropy:
             msg = 'Threshold is too high, lower threshold below '
             msg += f'{np.max(self.ete.values):.4f}'
             raise ValueError(msg)
-            
+
         # Find node centrality.
         all_nodes = list(set(list(links['out']) + list(links['in'])))
         centrality = {node: 0 for node in all_nodes}
         for _, row in links.iterrows():
             centrality[row[node_value]] += row['weight']
-        
+
         # Sort by node centrality, make node strength range [0.2, 1].
         nodes = sorted(centrality, key=centrality.get, reverse=True)
         ns = np.array([centrality[node] for node in nodes])
         node_strengths = 0.2 + 0.8 * (ns-np.min(ns)) / (np.max(ns)-np.min(ns))
-        
+
         # Build Ordered Directed Graph of nodes by centrality measure.
         G = nx.OrderedDiGraph()
         G.add_nodes_from(nodes)
         G.add_weighted_edges_from(list(links.itertuples(index=False)))
-        
+
         # Networkx automatically scales color scheme and node size to make the
         # minimum 0, resulting in no color or circle node for weakest
         # connection/node. Fix this by adding a blank node with strenth of 0
@@ -667,10 +677,10 @@ class TransferEntropy:
         G.add_node('')
         G.add_edge('', nodes[0], weight=0.8*np.min(links['weight']))
         node_strengths = np.append(node_strengths, 0)
-        
+
         # Find edge weights.
         edge_weights = np.array([G.edges[e]['weight'] for e in list(G.edges)])
-        
+
         # Plot network graph.
         kwargs = {
             'ax': ax,
@@ -685,20 +695,24 @@ class TransferEntropy:
             'linewidths': 1,
             'font_size': fontsize,
             }
-        
+
         if network_type == 'circle':
             nx.draw_circular(G, **kwargs)
         elif network_type == 'cluster':
             nx.draw(G, **kwargs)
 
-# eqs = 'SPY XLK XLV XLF IYZ XLY XLP XLI XLE XLU IYR XLB'\
-#     ' DIA IWM ECH EWW EWC EWZ'.split()
+# eqs = 'SPY DIA XLK XLV XLF IYZ XLY XLP XLI XLE XLU XME IYR XLB XPH IWM PHO ' \
+#     'SOXX WOOD FDN GNR IBB ILF ITA IYT KIE PBW ' \
+#     'AFK EZA ECH EWW EWC EWZ EEM EIDO EPOL EPP EWA EWD EWG EWH EWJ EWI EWK ' \
+#     'EWL EWM EWP EWQ EWS EWT EWU EWY GXC HAO EZU RSX TUR'.split()
 # fi = 'AGG SHY IEI IEF TLT TIP LQD HYG MBB'.split()
 # cmdtys = 'GLD SLV DBA DBC USO UNG'.split()
-# assets = eqs + fi + cmdtys
+# fx = 'FXA FXB FXC FXE FXF FXS FXY'.split()
+# assets = eqs + fi + cmdtys + fx
+
 #
-# assets2 = 'USO GLD XLE XLK'.split()
 # self = TransferEntropy(assets=assets2)
+
 # len(self.assets)
 # #
 # # # %%

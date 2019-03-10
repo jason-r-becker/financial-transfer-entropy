@@ -3,6 +3,7 @@ import warnings
 from collections import Counter, defaultdict
 from glob import glob
 
+
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -13,8 +14,6 @@ from scipy.stats import norm
 from tqdm import tqdm
 
 plt.style.use('fivethirtyeight')
-
-
 
 # %matplotlib qt
 # %%
@@ -453,7 +452,6 @@ class TransferEntropy:
                     bins, shuffle=True, save=False)
 
         # Peform significance test on ETE values.
-        cutoff = norm(0, 1).cdf(std_threshold)
         ete = np.zeros([self._n, self._n])
         for i in range(self._n):
             for j in range(self._n):
@@ -461,8 +459,7 @@ class TransferEntropy:
                     continue
                 te = self.te.iloc[i, j]
                 rte_array = self.rte_tensor[i, j, :]
-                z = norm(np.mean(rte_array), np.std(rte_array)).cdf(te)
-                if z > cutoff:
+                if te - np.mean(rte_array) - np.std(rte_array)/sims**0.5 > 0:
                     ete[i, j] = te - np.mean(rte_array)
 
         rte = np.mean(self.rte_tensor, axis=2)
@@ -728,7 +725,6 @@ class TransferEntropy:
             bottom=False, left=False, labelbottom=False, labelleft=False)
 
 
-
 # eqs = 'SPY DIA XLK XLV XLF IYZ XLY XLP XLI XLE XLU XME IYR XLB XPH IWM PHO ' \
 #     'SOXX WOOD FDN GNR IBB ILF ITA IYT KIE PBW ' \
 #     'AFK EZA ECH EWW EWC EWZ EEM EIDO EPOL EPP EWA EWD EWG EWH EWJ EWI EWK ' \
@@ -739,7 +735,7 @@ class TransferEntropy:
 #
 #
 #
-# self = TransferEntropy(assets=assets[::2])
+# self = TransferEntropy(assets=assets)
 #
 # # Set Period.
 # start = '1/2/2011'
@@ -778,7 +774,7 @@ class TransferEntropy:
 #
 # # %%
 # Compute effective transfer entropy.
-# self.compute_effective_transfer_entropy(sims=5, pbar=True)
+# self.compute_effective_transfer_entropy(sims=10, pbar=True)
 
 # ete = self.ete
 # %%
